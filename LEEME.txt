@@ -1,0 +1,10 @@
+Explica el contenido del tar.gz
+
+El código deberá incluir un documento del tipo “Leeme.txt” con al menos los
+siguientes elementos:• nombres y apellidos de los integrantes del grupo
+• números de carnet
+• qué archivos lo componen y qué tiene cada archivo
+• qué hace el programa
+• cómo se ejecuta
+• que condiciones particulares tiene, por ejemplo la entrada XX tiene máximo
+50 caracteres" o "el máximo número de registros YY es 20
