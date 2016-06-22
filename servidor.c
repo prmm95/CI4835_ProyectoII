@@ -69,6 +69,25 @@ void *beginProto(void *sockt){
 
 int main(int argc, char *argv[]){
 
+/* Para leer los argumentos cuando se ejecute el programa del servidor
+	int i;
+	long puerto;
+	char entradas[50];
+	char salidas[50];
+	for (i=1;i<argc;i++){
+		if (strcmp(argv[i],"-l") == 0){
+			puerto = atoll(argv[i+1]);
+		}else if(strcmp(argv[i],"-i") == 0){
+			strcpy(entradas,argv[i+1]);
+		}else if(strcmp(argv[i],"-o") == 0){
+			strcpy(salidas,argv[i+1]);
+		}
+	}
+	printf("%ld",puerto);
+	printf("%s",entradas);
+	printf("%s",salidas);
+*/
+
 	struct Skt skt1;
 	struct Skt skt2;
 	struct Skt skt3;
