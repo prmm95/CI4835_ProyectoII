@@ -12,7 +12,7 @@
  *
  * Referencias:
  * 1.- http://stackoverflow.com/questions/1442116/how-to-get-date-and-time-value-in-c-program
- *
+ * 2.- http://en.cppreference.com/w/c/chrono/difftime
  *
  *
  *
