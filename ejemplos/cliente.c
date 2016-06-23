@@ -1,11 +1,3 @@
-/*
-* Ejemplo de cliente de chat simple con datagramas (UDP).
-*
-* Leandro Lucarella - Copyleft 2004
-* Basado en diversos ejemplos públicos.
-*
-*/ 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -17,7 +9,6 @@
 
 #define SERVER_PORT 4321
 #define BUFFER_LEN 1024
-
 
 int main(int argc, char *argv[]) {
 
