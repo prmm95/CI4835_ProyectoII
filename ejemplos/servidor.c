@@ -27,8 +27,12 @@ int main(int argc, char *argv[]){
 
 	int i;
 	long puerto;
-	char entradas[50];
+	char entradas[50]; /* HAY QUE DEFINIR EL TAMANO DEL STRING DE LA RUTA DEL ARCHIVO */
 	char salidas[50];
+	if (argc < 7){
+		printf("\nUso: sem_srv -l puerto_sem_svr -i bitacora_entrada -o bitacora_salida\n\n");
+		exit(0);
+	}
 	for (i=1;i<argc;i++){
 		if (strcmp(argv[i],"-l") == 0){
 			puerto = atoll(argv[i+1]);
@@ -37,10 +41,6 @@ int main(int argc, char *argv[]){
 		}else if(strcmp(argv[i],"-o") == 0){
 			strcpy(salidas,argv[i+1]);
 		}
-	}
-	if (argc < 7){
-		printf("\nUso: sem_srv -l puerto_sem_svr -i bitacora_entrada -o bitacora_salida\n\n");
-		exit(0);
 	}
 
 	struct Skt skt;

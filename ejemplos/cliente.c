@@ -12,17 +12,38 @@
 
 int main(int argc, char *argv[]) {
 
+	char *placa,*modulo,*opcion;
+	int i;
+	long puerto;
+	if (argc < 9){
+		printf("\nUso: sem_cli -d nombre_modulo_atencion -p puerto -c op -i id_vehiculo\n\n");
+		exit(0);
+	}
+	for (i=1;i<argc;i++){
+		if (strcmp(argv[i],"-p") == 0){
+			puerto = atoll(argv[i+1]);
+		}else if(strcmp(argv[i],"-d") == 0){
+			modulo = malloc(sizeof(argv[i+1]));
+			strcpy(modulo,argv[i+1]);
+		}else if(strcmp(argv[i],"-c") == 0){
+			opcion = malloc(sizeof(argv[i+1]));
+			strcpy(opcion,argv[i+1]);
+		}else if(strcmp(argv[i],"-i") == 0){
+			placa = malloc(sizeof(argv[i+1]));
+			strcpy(placa,argv[i+1]);
+		}
+	}
+	/*printf("PLACA: %s\n", placa);
+	printf("MODULO: %s\n", modulo);
+	printf("OPCION: %s\n", opcion);
+	printf("PUERTO: %ld\n", puerto);*/
+
 	int sockfd; /* descriptor a usar con el socket */
 	struct sockaddr_in their_addr; /* almacenara la direccion IP y numero de puerto del servidor */
 	struct hostent *he; /* para obtener nombre del host */
 	int numbytes; /* conteo de bytes a escribir */
-	if (argc != 3) {
-		fprintf(stderr,"\nuso: %s cliente hostname mensaje\n", argv[0]);
-		exit(1);
-	}
-
 	/* convertimos el hostname a su direccion IP */
-	if ((he=gethostbyname(argv[1])) == NULL) {
+	if ((he=gethostbyname(modulo)) == NULL) {
 		perror("gethostbyname");
 		exit(1);
 	}
@@ -40,7 +61,8 @@ int main(int argc, char *argv[]) {
 	bzero(&(their_addr.sin_zero), 8); /* pone en cero el resto */
 	
 	/* enviamos el mensaje */
-	if ((numbytes=sendto(sockfd,argv[2],strlen(argv[2]),0,(struct sockaddr *)&their_addr,
+	char *mensaje = "holaaaaa";
+	if ((numbytes=sendto(sockfd,mensaje,strlen(mensaje),0,(struct sockaddr *)&their_addr,
 	sizeof(struct sockaddr))) == -1) {
 		perror("sendto");
 		exit(2);
