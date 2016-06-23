@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 		printf("\nUso: sem_cli -d nombre_modulo_atencion -p puerto -c op -i id_vehiculo\n\n");
 		exit(0);
 	}
-	for (i=1;i<argc;i++){
+	for (i=1;i<argc;i++){ /* Aqui vamos contemplar casos como que corran el cliente con sem_cli hola -d hola ? (Ver enunciado)*/
 		if (strcmp(argv[i],"-p") == 0){
 			puerto = atoll(argv[i+1]);
 		}else if(strcmp(argv[i],"-d") == 0){
