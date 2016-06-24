@@ -25,6 +25,7 @@
 //----------------------------------------------------------------------------//
 
 #include <stdio.h> // Uso de la entrada/salida estándar (I/O).
+#include <stdlib.h> 
 #include <math.h>
 #include <time.h>  //
 #include <errno.h> // Uso de la función perror()
@@ -67,30 +68,30 @@ typedef struct tiempo {
 // Notas:
 // borrar de la lista al vehiculo cuando sale
 
-void agregarVehiculo(Vehiculo *lisVehic,TiempoV Ent, TiempoV Sal, int cod, int ser) {
+void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, TiempoV Sal, int cod, int ser) {
 	
 	// que pasa si no existian vehiculos?
 	
 	// pendientel -> vs. .
 	
 	// Se crea la nueva instancia de vehiculo:
-	Vehiculo nuevoVehiculo;
-	nuevoVehiculo.codigo = cod;
- 	nuevoVehiculo.serial = ser;
- 	nuevoVehiculo.Entrada = Ent;
- 	nuevoVehiculo.Salida = Sal;
- 	nuevoVehiculo.siguiente = NULL;
+	Vehiculo *nuevoVehiculo = (Vehiculo *) malloc(sizeof(Vehiculo));
+	nuevoVehiculo->codigo = cod;
+ 	nuevoVehiculo->serial = ser;
+ 	nuevoVehiculo->Entrada = Ent;
+ 	nuevoVehiculo->Salida = Sal;
+ 	nuevoVehiculo->siguiente = NULL;
  	
  	
- 	if (lisVehic == NULL) {
- 		lisVehic = &nuevoVehiculo;
+ 	if (*lisVehic == NULL) {
+ 		*lisVehic = nuevoVehiculo;
  	}
  	
  	else {
  		
  		// Se recorre la lista de vehiculos para agregar la entrada al final:
  		Vehiculo *aux;
- 		aux = lisVehic;
+ 		aux = *lisVehic;
  	
  		while (aux->siguiente != NULL) {
  		
@@ -100,13 +101,11 @@ void agregarVehiculo(Vehiculo *lisVehic,TiempoV Ent, TiempoV Sal, int cod, int s
 	 		aux = aux->siguiente;
 	 	}
  	
- 		aux->siguiente = &nuevoVehiculo;
+ 		aux->siguiente = nuevoVehiculo;
  	
  	}
  
 }
-
-
 
 //----------------------------------------------------------------------------//
 
@@ -157,7 +156,6 @@ void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) 
 	close(bitacora);
 	
 }
-
 
 //----------------------------------------------------------------------------//
 
@@ -259,9 +257,23 @@ int main() {
 	tarifaVehiculo = calcular_costo(carro1);
 	//printf("La tarifa a pagar es %d \n",tarifaVehiculo);
 	
-	Vehiculo *inicioList;
+	Vehiculo *inicioList = NULL;
 	
-	agregarVehiculo(inicioList,tiempo1,tiempo2,codigoVehiculo,0);
+	agregarVehiculo(&inicioList,tiempo1,tiempo2,codigoVehiculo,0);
+
+	if (inicioList == NULL) {
+		printf("es null\n");
+	}
+
+	printf("el codigo es: %d\n",inicioList->serial);
+
+	agregarVehiculo(&inicioList,tiempo1,tiempo2,codigoVehiculo,1);
+
+	printf("el siguiente codigo es: %d\n",inicioList->siguiente->serial);
+
+	//agregarVehiculo(inicioList,tiempo1,tiempo2,codigoVehiculo,2);
+
+
 
  	return(0);
 }
