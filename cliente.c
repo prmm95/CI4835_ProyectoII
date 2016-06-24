@@ -38,14 +38,22 @@
 
 int main(int argc, char *argv[]) {
 
+	// Inicialización de variables:
 	char *placa,*modulo,*opcion;
 	int i;
 	long puerto;
-	if (argc < 9){
+
+	printf("el numero de argumentos es: %d \n",argc);
+
+	// Verificación del pase correcto de argumentos:
+	if (argc < 8){
+		//perror("Pase incorrecto parámetros\n");
 		printf("\nUso: sem_cli -d nombre_modulo_atencion -p puerto -c op -i id_vehiculo\n\n");
 		exit(0);
 	}
-	for (i=1;i<argc;i++){ /* Aqui vamos contemplar casos como que corran el cliente con sem_cli hola -d hola ? (Ver enunciado)*/
+
+	/* Aqui vamos contemplar casos como que corran el cliente con sem_cli hola -d hola ? (Ver enunciado)*/
+	for (i = 1;i < argc;i++) { 
 		if (strcmp(argv[i],"-p") == 0){
 			puerto = atoll(argv[i+1]);
 		}else if(strcmp(argv[i],"-d") == 0){
@@ -59,15 +67,18 @@ int main(int argc, char *argv[]) {
 			strcpy(placa,argv[i+1]);
 		}
 	}
+
 	/*printf("PLACA: %s\n", placa);
 	printf("MODULO: %s\n", modulo);
 	printf("OPCION: %s\n", opcion);
 	printf("PUERTO: %ld\n", puerto);*/
 
+	// Inicialización de variables:
 	int sockfd; /* descriptor a usar con el socket */
 	struct sockaddr_in their_addr; /* almacenara la direccion IP y numero de puerto del servidor */
 	struct hostent *he; /* para obtener nombre del host */
 	int numbytes; /* conteo de bytes a escribir */
+
 	/* convertimos el hostname a su direccion IP */
 	if ((he=gethostbyname(modulo)) == NULL) {
 		perror("gethostbyname");
@@ -82,7 +93,7 @@ int main(int argc, char *argv[]) {
 
 	/* a donde mandar */
 	their_addr.sin_family = AF_INET; /* usa host byte order */
-	their_addr.sin_port = htons(SERVER_PORT); /* usa network byte order */
+	their_addr.sin_port = htons(puerto); /* usa network byte order */
 	their_addr.sin_addr = *((struct in_addr *)he->h_addr);
 	bzero(&(their_addr.sin_zero), 8); /* pone en cero el resto */
 	
