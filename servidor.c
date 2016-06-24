@@ -17,26 +17,50 @@
 //                        Directivas de preprocesador                         //
 //----------------------------------------------------------------------------//
 
-#include <pthread.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <string.h>
-#include <unistd.h>
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
+#include <arpa/inet.h>  //
+#include <errno.h>      //
+#include <math.h>       //
+#include <netdb.h>      //
+#include <pthread.h>    //
+#include <time.h>       // 
+#include <stdio.h>      // Uso de la entrada/salida estándar (I/O).
+#include <stdlib.h>     //
+#include <string.h>     //
+#include <sys/types.h>  //
+#include <unistd.h>     //
 
 //----------------------------------------------------------------------------//
 //                          Definición de constantes                          //
 //----------------------------------------------------------------------------//
 
+#define NUM_PUESTOS 200 // Número de puestos del estacionamiento.
 #define NUM_THREADS 3
 #define BUFFER_LEN 1024
 
 //----------------------------------------------------------------------------//
 //                      Definición del tipos estructurados                    //
 //----------------------------------------------------------------------------//
+
+typedef struct tm Tiempo;
+
+//----------------------------------------------------------------------------//
+
+typedef struct tiempo {
+	Tiempo tiempoF;
+	time_t segundos;
+} TiempoV;
+
+//----------------------------------------------------------------------------//
+
+ typedef struct vehiculo {
+ 	TiempoV Entrada;
+ 	TiempoV Salida;
+ 	int codigo;
+ 	int serial; // cambiar, porque no es int.
+ 	int tarifa;
+ 	struct vehiculo *siguiente;
+ } Vehiculo;
+
 
 struct Skt
 {
@@ -47,10 +71,165 @@ struct Skt
 	int numbytes;
 }skt;
 
-
 //----------------------------------------------------------------------------//
 //                          Definición de funciones                           //
 //----------------------------------------------------------------------------//
+
+// Notas:
+// borrar de la lista al vehiculo cuando sale
+
+void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, TiempoV Sal, int *cod, int ser) {
+			
+	// Se crea el nuevo vehiculo que se agregara a la lista enlazada:
+	Vehiculo *nuevoVehiculo = (Vehiculo *) malloc(sizeof(Vehiculo));
+	nuevoVehiculo->codigo = *cod;
+ 	nuevoVehiculo->serial = ser;
+ 	nuevoVehiculo->Entrada = Ent;
+ 	nuevoVehiculo->Salida = Sal;
+ 	nuevoVehiculo->siguiente = NULL;
+ 	// Se actualiza el contador de vehiculo:
+ 	*cod = *cod + 1;
+
+ 	// En caso de agregar el primer vehiculo a la lista:
+ 	if (*lisVehic == NULL) {
+ 		*lisVehic = nuevoVehiculo;
+ 	}
+ 	
+ 	// En caso de que ya existieran vehiculos en la lista.
+ 	else {
+ 		
+ 		// Se recorre la lista de vehiculos para agregar la entrada al final:
+ 		Vehiculo *aux;
+ 		aux = *lisVehic;
+ 	
+ 		while (aux->siguiente != NULL) {
+ 		
+ 			//printf("Este es el vehiculo de codigo %d \n",aux->codigo);
+
+	 		aux = aux->siguiente;
+	 	}
+ 	
+ 		aux->siguiente = nuevoVehiculo;
+ 	
+ 	}
+ 
+}
+
+//----------------------------------------------------------------------------//
+
+void eliminarVehiculo(Vehiculo **inicioList, int cod) {
+
+	Vehiculo *aux = *inicioList;
+	Vehiculo *anterior = NULL;
+
+	while (aux != NULL) {
+
+		if (aux->codigo == cod) {
+
+			if (anterior == NULL) {
+				*inicioList = aux->siguiente;
+				free(aux);
+				break;
+			}
+
+			else {
+				anterior->siguiente = aux->siguiente;
+				free(aux);
+				break;
+			}
+		}
+
+		anterior = aux;
+		aux = aux->siguiente;
+
+	}
+	
+}
+
+
+void imprimirLista(Vehiculo **inicioList) {
+
+	Vehiculo *aux = *inicioList;
+
+	while (aux != NULL) {
+		printf("El codigo del vehiculo es %d\n",aux->codigo);
+
+		aux = aux->siguiente;
+	}
+
+}
+
+
+//----------------------------------------------------------------------------//
+
+void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) {
+	/*
+	 * Descripción: 
+	 *
+	 * Variables de entrada:
+	 *
+	 * Variables de salida:
+	 *
+	*/
+
+	// Inicializción de variables:
+	// Revisar si esto puede ir en el main para no abrir y cerrar el fb cada vz.
+	FILE *bitacora;
+	bitacora = fopen(rutaBitacora,"a"); // no se si pasar esto como parametro para no abrir y cerrar el df cada vez
+	Tiempo fechaB;
+	
+	// No se si este if se puede hacer mas elegante:
+	if (tipoOperacion == "Entrada") {
+		fechaB = vehiculo.Entrada.tiempoF;
+	}
+	
+	else {
+		fechaB = vehiculo.Salida.tiempoF;
+	}
+		
+	fprintf(bitacora,"-------------------\n");
+	fprintf(bitacora,"Fecha: %d/%02d/%d \n",fechaB.tm_mday,fechaB.tm_mon + 1,fechaB.tm_year + 1900);
+	fprintf(bitacora,"Hora: %02d:%02d:%02d\n", fechaB.tm_hour, fechaB.tm_min, fechaB.tm_sec);
+	fprintf(bitacora,"Serial: %d \n",vehiculo.serial);
+	fprintf(bitacora,"Código: %d",vehiculo.codigo);
+	fprintf(bitacora,"\n-------------------\n");
+	
+	fclose(bitacora);
+	
+}
+
+//----------------------------------------------------------------------------//
+
+
+int calcular_costo(Vehiculo vehiculo) {
+	/*
+	 * Descripción: Esta función determina el costo a pagar de un vehículo por
+	 * su estadía en el estacionamiento. Considere que la primera hora de 
+	 * estacionamiento cuesta 80 Bs y la fracción (1 hora) cuesta 30 Bs
+	 *
+	 * Variables de entrada:
+	 *     - Entrada: Fecha y hora de entrada del vehículo al estacionamiento.
+	 *     - Salida: Fecha y hora de salida del vehículo al estacionamiento.
+	 * Variables de salida:
+	 *   - tarifa : int // Tarifa a pagar por el tiempo de estadía.
+	 *
+	*/
+
+	// Inicialización de variables:
+	int tarifa = 80;
+	double segundos;
+	double horas;
+	segundos = difftime(vehiculo.Salida.segundos,vehiculo.Entrada.segundos);
+	horas = ceil(segundos / 3600) - 1;
+	printf("El numero de segundos es %f\n",segundos);
+	printf("El numero de horas es %f\n",horas);
+	tarifa += horas*30;
+	
+	printf("La tarifa es %d\n",tarifa);
+	
+	return tarifa;
+
+}
 
 void *crearSocket(struct Skt *skt,int puerto){
 	char buf[BUFFER_LEN];
@@ -80,6 +259,13 @@ void *crearSocket(struct Skt *skt,int puerto){
 void *beginProtocol(void *buf){
 	char *buffer = buf;
 	printf("el paquete contiene: %s\n", buffer);
+
+
+
+
+
+
+
 }
 
 //----------------------------------------------------------------------------//
@@ -87,6 +273,8 @@ void *beginProtocol(void *buf){
 //----------------------------------------------------------------------------//
 
 int main(int argc, char *argv[]){
+
+	// Inicialización de variables: 
 
 	int i;
 	long puerto;
@@ -118,7 +306,9 @@ int main(int argc, char *argv[]){
 						(struct sockaddr *)&(skt.their_addr), 
 						(socklen_t *)&(skt.addr_len))) != -1) {
 		buf[skt.numbytes] = '\0';
+
 		rc = pthread_create(&threads[num_hilos], NULL, beginProtocol, &buf);
+
 		if (rc){
 			printf("ERROR; return code from pthread_create() is %d\n", rc);
 			exit(-1);

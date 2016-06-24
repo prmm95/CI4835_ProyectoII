@@ -12,7 +12,7 @@
 
 Main:
 	gcc cliente.c -o sem_cli
-	gcc -pthread servidor.c -o sem_svr
+	gcc -pthread servidor.c -lm -o sem_svr
 
 clean:
 	rm sem_svr

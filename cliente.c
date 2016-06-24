@@ -33,6 +33,19 @@
 #define BUFFER_LEN 1024
 
 //----------------------------------------------------------------------------//
+
+// esto es una prueba: 
+
+char* concat(char *s1, char *s2) {
+    char *result = malloc(strlen(s1)+1+strlen(s2)+1);//+1 for the zero-terminator
+    //in real code you would check for errors in malloc here
+    strcpy(result, s1);
+    strcpy(result,"/");
+    strcat(result, s2);
+    return result;
+}
+
+//----------------------------------------------------------------------------//
 //                       Inicio del código principal                          //
 //----------------------------------------------------------------------------//
 
@@ -91,6 +104,11 @@ int main(int argc, char *argv[]) {
 		exit(2);
 	}
 
+	char str[200];
+	strcpy(str,opcion);
+	strcat(str,placa);
+	printf("el string es: %s \n",str);
+
 	/* a donde mandar */
 	their_addr.sin_family = AF_INET; /* usa host byte order */
 	their_addr.sin_port = htons(puerto); /* usa network byte order */
@@ -98,7 +116,7 @@ int main(int argc, char *argv[]) {
 	bzero(&(their_addr.sin_zero), 8); /* pone en cero el resto */
 	
 	/* enviamos el mensaje */
-	char *mensaje = "holaaaaa";
+	char *mensaje = "e";
 	if ((numbytes=sendto(sockfd,mensaje,strlen(mensaje),0,(struct sockaddr *)&their_addr,
 	sizeof(struct sockaddr))) == -1) {
 		perror("sendto");
