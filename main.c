@@ -68,25 +68,24 @@ typedef struct tiempo {
 // Notas:
 // borrar de la lista al vehiculo cuando sale
 
-void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, TiempoV Sal, int cod, int ser) {
-	
-	// que pasa si no existian vehiculos?
-	
-	// pendientel -> vs. .
-	
-	// Se crea la nueva instancia de vehiculo:
+void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, TiempoV Sal, int *cod, int ser) {
+			
+	// Se crea el nuevo vehiculo que se agregara a la lista enlazada:
 	Vehiculo *nuevoVehiculo = (Vehiculo *) malloc(sizeof(Vehiculo));
-	nuevoVehiculo->codigo = cod;
+	nuevoVehiculo->codigo = *cod;
  	nuevoVehiculo->serial = ser;
  	nuevoVehiculo->Entrada = Ent;
  	nuevoVehiculo->Salida = Sal;
  	nuevoVehiculo->siguiente = NULL;
- 	
- 	
+ 	// Se actualiza el contador de vehiculo:
+ 	*cod = *cod + 1;
+
+ 	// En caso de agregar el primer vehiculo a la lista:
  	if (*lisVehic == NULL) {
  		*lisVehic = nuevoVehiculo;
  	}
  	
+ 	// En caso de que ya existieran vehiculos en la lista.
  	else {
  		
  		// Se recorre la lista de vehiculos para agregar la entrada al final:
@@ -95,9 +94,8 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, TiempoV Sal, int cod, int 
  	
  		while (aux->siguiente != NULL) {
  		
- 			printf("Este es el vehiculo de código %d \n",cod);
- 		
- 			// el problema esta aca
+ 			//printf("Este es el vehiculo de codigo %d \n",aux->codigo);
+
 	 		aux = aux->siguiente;
 	 	}
  	
@@ -109,11 +107,8 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, TiempoV Sal, int cod, int 
 
 //----------------------------------------------------------------------------//
 
-void buscarVehiculo() {
-	
-}
+void eliminarVehiculo(Vehiculo **inicioList, int cod) {
 
-void eliminarVehiculo() {
 	
 	
 }
@@ -259,21 +254,12 @@ int main() {
 	
 	Vehiculo *inicioList = NULL;
 	
-	agregarVehiculo(&inicioList,tiempo1,tiempo2,codigoVehiculo,0);
-
-	if (inicioList == NULL) {
-		printf("es null\n");
-	}
-
-	printf("el codigo es: %d\n",inicioList->serial);
-
-	agregarVehiculo(&inicioList,tiempo1,tiempo2,codigoVehiculo,1);
-
-	printf("el siguiente codigo es: %d\n",inicioList->siguiente->serial);
-
-	//agregarVehiculo(inicioList,tiempo1,tiempo2,codigoVehiculo,2);
-
-
+	agregarVehiculo(&inicioList,tiempo1,tiempo2,&codigoVehiculo,0);
+	agregarVehiculo(&inicioList,tiempo1,tiempo2,&codigoVehiculo,1);
+	agregarVehiculo(&inicioList,tiempo1,tiempo2,&codigoVehiculo,2);
+	agregarVehiculo(&inicioList,tiempo1,tiempo2,&codigoVehiculo,3);
+	agregarVehiculo(&inicioList,tiempo1,tiempo2,&codigoVehiculo,4);
+	agregarVehiculo(&inicioList,tiempo1,tiempo2,&codigoVehiculo,5);
 
  	return(0);
 }
