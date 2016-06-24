@@ -11,8 +11,8 @@
 #
 
 Main:
-	gcc cliente.c -o sem_svr
-	gcc servidor.c -o sem_cli
+	gcc cliente.c -o sem_cli
+	gcc -pthread servidor.c -o sem_svr
 
 clean:
 	rm sem_svr
