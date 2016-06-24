@@ -179,7 +179,7 @@ void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) 
 	Tiempo fechaB;
 	
 	// No se si este if se puede hacer mas elegante:
-	if (tipoOperacion == "Entrada") {
+	if (tipoOperacion == "e") {
 		fechaB = vehiculo.Entrada.tiempoF;
 	}
 	
@@ -261,10 +261,49 @@ void *beginProtocol(void *buf){
 	printf("el paquete contiene: %s\n", buffer);
 
 
+	// Se calcula el tiempo actual:
+	time_t t1 = time(NULL);
+	Tiempo tm1 = *localtime(&t1);
+	time_t t2 = t1 + 7201;
+	Tiempo tm2 = *localtime(&t2);
+	// Se muestra en pantalla el tiempo actual:
+	printf("Fecha: %02d/%02d/%d \n",tm1.tm_mday,tm1.tm_mon + 1,tm1.tm_year + 1900);
+	printf("Hora: %02d:%02d:%02d \n", tm1.tm_hour, tm1.tm_min, tm1.tm_sec);
 
+	// Prueba
+	Vehiculo *inicioList = NULL;
 
+	Vehiculo carro1;
+	carro1.Entrada.tiempoF = tm1;
+	carro1.Entrada.segundos = t1;
+ 	carro1.Salida.tiempoF = tm2;
+ 	carro1.Salida.segundos = t2;
+ 	carro1.codigo = 123;
+ 	carro1.serial = 456;
+ 	carro1.tarifa = 0;
+	char *rutaBitacora;
+	rutaBitacora = "hola";
 
+	// Pasar la operacion como un int.
+	int opcion = 1;
 
+    switch(opcion) {
+
+    	case 1:
+    		//agregarVehiculo(&inicioList,tiempo1,tiempo2,)
+			escribirBitacora(rutaBitacora,"e",carro1);
+			break;
+
+    	case 0:
+    		// eliminar vehiculo:
+    		// escribir Bitacora (salida):
+    		escribirBitacora(rutaBitacora,"s",carro1);
+    		break;
+
+    	default:
+    		perror("Operación incorrecta\n");
+    		break;
+    }
 
 }
 
@@ -275,8 +314,11 @@ void *beginProtocol(void *buf){
 int main(int argc, char *argv[]){
 
 	// Inicialización de variables: 
-
+	int puestosOcupados = 0;
+ 	int codigoVehiculo = 0; // Global
 	int i;
+
+
 	long puerto;
 	char entradas[50]; /* HAY QUE DEFINIR EL TAMANO DEL STRING DE LA RUTA DEL ARCHIVO */
 	char salidas[50];
@@ -306,6 +348,11 @@ int main(int argc, char *argv[]){
 						(struct sockaddr *)&(skt.their_addr), 
 						(socklen_t *)&(skt.addr_len))) != -1) {
 		buf[skt.numbytes] = '\0';
+
+		// Organizar los argumentos: 
+		// - tiempo de entrada / salida
+	    // - vehiculo (con el tiempo ya puesto)
+	    // - opcion
 
 		rc = pthread_create(&threads[num_hilos], NULL, beginProtocol, &buf);
 
