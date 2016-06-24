@@ -52,12 +52,12 @@ typedef struct tiempo {
 //----------------------------------------------------------------------------//
 
  typedef struct vehiculo {
- 	char *tipoOperacion; 
  	TiempoV Entrada;
  	TiempoV Salida;
  	int codigo;
  	int serial; // cambiar, porque no es int.
  	int tarifa;
+ 	struct vehiculo *siguiente;
  } Vehiculo;
 
 //----------------------------------------------------------------------------//
@@ -66,16 +66,79 @@ typedef struct tiempo {
 
 // Notas:
 // borrar de la lista al vehiculo cuando sale
-// el contador del codigo es global
 
-void escribirBitacora(char *rutaBitacora,Vehiculo vehiculo) {
+void agregarVehiculo(Vehiculo *lisVehic,TiempoV Ent, TiempoV Sal, int cod, int ser) {
+	
+	// que pasa si no existian vehiculos?
+	
+	// pendientel -> vs. .
+	
+	// Se crea la nueva instancia de vehiculo:
+	Vehiculo nuevoVehiculo;
+	nuevoVehiculo.codigo = cod;
+ 	nuevoVehiculo.serial = ser;
+ 	nuevoVehiculo.Entrada = Ent;
+ 	nuevoVehiculo.Salida = Sal;
+ 	nuevoVehiculo.siguiente = NULL;
+ 	
+ 	
+ 	if (lisVehic == NULL) {
+ 		lisVehic = &nuevoVehiculo;
+ 	}
+ 	
+ 	else {
+ 		
+ 		// Se recorre la lista de vehiculos para agregar la entrada al final:
+ 		Vehiculo *aux;
+ 		aux = lisVehic;
+ 	
+ 		while (aux->siguiente != NULL) {
+ 		
+ 			printf("Este es el vehiculo de código %d \n",cod);
+ 		
+ 			// el problema esta aca
+	 		aux = aux->siguiente;
+	 	}
+ 	
+ 		aux->siguiente = &nuevoVehiculo;
+ 	
+ 	}
+ 
+}
 
+
+
+//----------------------------------------------------------------------------//
+
+void buscarVehiculo() {
+	
+}
+
+void eliminarVehiculo() {
+	
+	
+}
+
+//----------------------------------------------------------------------------//
+
+void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) {
+	/*
+	 * Descripción: 
+	 *
+	 * Variables de entrada:
+	 *
+	 * Variables de salida:
+	 *
+	*/
+
+	// Inicializción de variables:
+	// Revisar si esto puede ir en el main para no abrir y cerrar el fb cada vz.
 	FILE *bitacora;
 	bitacora = fopen(rutaBitacora,"a"); // no se si pasar esto como parametro para no abrir y cerrar el df cada vez
 	Tiempo fechaB;
 	
 	// No se si este if se puede hacer mas elegante:
-	if (vehiculo.tipoOperacion == "Entrada") {
+	if (tipoOperacion == "Entrada") {
 		fechaB = vehiculo.Entrada.tiempoF;
 	}
 	
@@ -129,7 +192,6 @@ int calcular_costo(Vehiculo vehiculo) {
 
 }
 
-
 //----------------------------------------------------------------------------//
 //                       Inicio del código principal                          //
 //----------------------------------------------------------------------------//
@@ -138,13 +200,13 @@ int main() {
 
  	// Inicialización de los puestos ocupados en el estacionamiento.
  	int puestosOcupados = 0;
+ 	int codigoVehiculo = 0; // Global
  	int tarifaVehiculo;
 
  	// Se calcula el tiempo actual:
 	time_t t1 = time(NULL);
 	Tiempo tm1 = *localtime(&t1);
 	
-	// set beg to the beginning of the month
     tm1.tm_hour = 0;
     tm1.tm_min = 0;
     tm1.tm_sec = 0;
@@ -172,11 +234,8 @@ int main() {
 	printf("Hora: %02d:%02d:%02d", tm2.tm_hour, tm2.tm_min, tm2.tm_sec);
 	printf("\n-------------------\n");
 
-	
-	
 	// Prueba
 	Vehiculo carro1;
-	carro1.tipoOperacion = "Entrada";
 	carro1.Entrada.tiempoF = tm1;
 	carro1.Entrada.segundos = t1;
  	carro1.Salida.tiempoF = tm2;
@@ -187,11 +246,22 @@ int main() {
 	char *rutaBitacora;
 	rutaBitacora = "hola";
 	
+	TiempoV tiempo1;
+	tiempo1.tiempoF = tm1;
+	tiempo1.segundos = t1;
+	TiempoV tiempo2;
+	tiempo2.tiempoF = tm2;
+	tiempo2.segundos = t2;
+	
 	// antes de salir, hay que calcular tarifa.
-	escribirBitacora(rutaBitacora,carro1);
+	escribirBitacora(rutaBitacora,"Entrada",carro1);
 	
 	tarifaVehiculo = calcular_costo(carro1);
 	//printf("La tarifa a pagar es %d \n",tarifaVehiculo);
+	
+	Vehiculo *inicioList;
+	
+	agregarVehiculo(inicioList,tiempo1,tiempo2,codigoVehiculo,0);
 
  	return(0);
 }
