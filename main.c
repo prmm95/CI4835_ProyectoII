@@ -109,9 +109,46 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, TiempoV Sal, int *cod, int
 
 void eliminarVehiculo(Vehiculo **inicioList, int cod) {
 
-	
+	Vehiculo *aux = *inicioList;
+	Vehiculo *anterior = NULL;
+
+	while (aux != NULL) {
+
+		if (aux->codigo == cod) {
+
+			if (anterior == NULL) {
+				*inicioList = aux->siguiente;
+				free(aux);
+				break;
+			}
+
+			else {
+				anterior->siguiente = aux->siguiente;
+				free(aux);
+				break;
+			}
+		}
+
+		anterior = aux;
+		aux = aux->siguiente;
+
+	}
 	
 }
+
+
+void imprimirLista(Vehiculo **inicioList) {
+
+	Vehiculo *aux = *inicioList;
+
+	while (aux != NULL) {
+		printf("El codigo del vehiculo es %d\n",aux->codigo);
+
+		aux = aux->siguiente;
+	}
+
+}
+
 
 //----------------------------------------------------------------------------//
 
@@ -260,6 +297,20 @@ int main() {
 	agregarVehiculo(&inicioList,tiempo1,tiempo2,&codigoVehiculo,3);
 	agregarVehiculo(&inicioList,tiempo1,tiempo2,&codigoVehiculo,4);
 	agregarVehiculo(&inicioList,tiempo1,tiempo2,&codigoVehiculo,5);
+
+
+	imprimirLista(&inicioList);
+	printf("-------------------\n");
+	eliminarVehiculo(&inicioList,5);
+	imprimirLista(&inicioList);
+	printf("-------------------\n");
+	eliminarVehiculo(&inicioList,0);
+	imprimirLista(&inicioList);
+	printf("-------------------\n");
+	eliminarVehiculo(&inicioList,3);
+	imprimirLista(&inicioList);
+
+
 
  	return(0);
 }
