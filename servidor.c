@@ -260,6 +260,15 @@ void *beginProtocol(void *buf){
 	char *buffer = buf;
 	printf("el paquete contiene: %s\n", buffer);
 
+	const char separador[2] = "/";
+	char *operacion;
+	char *placa;
+
+	operacion = strtok(buf,separador);
+	placa = strtok(NULL,separador);
+
+	printf("La operacion es -> %s\n",operacion);
+	printf("La placaes -> %s\n",placa);
 
 	// Se calcula el tiempo actual:
 	time_t t1 = time(NULL);
@@ -284,6 +293,7 @@ void *beginProtocol(void *buf){
 	char *rutaBitacora;
 	rutaBitacora = "hola";
 
+	/* No entendi esto. Creo que ya lo hago arriba
 	// Pasar la operacion como un int.
 	int opcion = 1;
 
@@ -304,7 +314,7 @@ void *beginProtocol(void *buf){
     		perror("Operación incorrecta\n");
     		break;
     }
-
+	*/
 }
 
 //----------------------------------------------------------------------------//
@@ -348,25 +358,6 @@ int main(int argc, char *argv[]){
 						(struct sockaddr *)&(skt.their_addr), 
 						(socklen_t *)&(skt.addr_len))) != -1) {
 		buf[skt.numbytes] = '\0';
-
-		const char separador[2] = "/";
-		char *operacion;
-		char *placa;
-
-		operacion = strtok(buf,separador);
-		placa = strtok(NULL,separador);
-
-		printf("La operacion es -> %s\n",operacion);
-		printf("La placaes -> %s\n",placa);
-
-		//printf("El tipo de operacion es %s \n",buf);
-
-		//printf("El mensaje completo es %s\n",buf);
-
-		// Organizar los argumentos: 
-		// - tiempo de entrada / salida
-	    // - vehiculo (con el tiempo ya puesto)
-	    // - opcion
 
 		rc = pthread_create(&threads[num_hilos], NULL, beginProtocol, &buf);
 

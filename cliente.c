@@ -24,6 +24,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
+#include <time.h>
 
 //----------------------------------------------------------------------------//
 //                          Definición de constantes                          //
@@ -31,6 +32,24 @@
 
 #define SERVER_PORT 4321
 #define BUFFER_LEN 1024
+
+
+struct Skt
+{
+	int sockfd;
+	struct sockaddr_in my_addr;
+	struct sockaddr_in their_addr;
+	int addr_len;
+	int numbytes;
+}skt;
+
+struct Parametros
+{
+	struct Skt *skt;
+	int *confirmado;
+	char *mensaje;
+};
+
 
 //----------------------------------------------------------------------------//
 
@@ -45,6 +64,50 @@ char* concat(char *s1, char *s2) {
     return result;
 }
 
+void *crearSocket(struct Skt *skt,int puerto){ // FUNCION DUPLICADA, QUITAR CUANDO HAGAMOS EL HEADER
+
+	if ((skt->sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
+		perror("skt");
+		exit(1);
+	}
+
+	/* Se establece la estructura my_addr para luego llamar a bind() */
+	skt->my_addr.sin_family = AF_INET; /* usa host byte order */
+	skt->my_addr.sin_port = htons(puerto+1); /* usa network byte order */
+	skt->my_addr.sin_addr.s_addr = INADDR_ANY; /* escuchamos en todas las IPs */
+	bzero(&(skt->my_addr.sin_zero), 8); /* rellena con ceros el resto de la estructura */
+	/* Se le da un nombre al skt (se lo asocia al puerto e IPs) */
+
+	printf("Asignado direccion al skt ....\n");
+	printf("FILE-DESC: %d\n",skt->sockfd);
+	if (bind(skt->sockfd, (struct sockaddr *)&(skt->my_addr), 
+							 sizeof(struct sockaddr)) == -1) {
+		perror("bind");
+		exit(2);
+	}
+}
+
+void *reenviar(void *parametros){
+
+	struct Parametros *p = parametros;
+	struct Skt *skt = p->skt;
+	int *confirmado = p->confirmado;
+	printf("ENTRA?%d",*confirmado);
+	// Mientras el servidor no responda con un ACK
+	while (!(*confirmado)){
+		sleep(1);
+		// Si el servidor no ha respondido, vuelve a enviar el mensaje
+		if (!(*confirmado)){
+			if ((skt->numbytes=sendto(skt->sockfd,p->mensaje,strlen(p->mensaje),0,
+				(struct sockaddr *)&(skt->their_addr),sizeof(struct sockaddr))) == -1) {
+				perror("sendto");
+				exit(2);
+			}
+		}
+	}
+	printf("hola\n" );
+}
+
 //----------------------------------------------------------------------------//
 //                       Inicio del código principal                          //
 //----------------------------------------------------------------------------//
@@ -55,8 +118,6 @@ int main(int argc, char *argv[]) {
 	char *placa,*modulo,*opcion;
 	int i;
 	long puerto;
-
-	printf("el numero de argumentos es: %d \n",argc);
 
 	// Verificación del pase correcto de argumentos:
 	if (argc < 8){
@@ -73,8 +134,11 @@ int main(int argc, char *argv[]) {
 			modulo = malloc(sizeof(argv[i+1]));
 			strcpy(modulo,argv[i+1]);
 		}else if(strcmp(argv[i],"-c") == 0){
-			opcion = malloc(sizeof(argv[i+1]));
-			strcpy(opcion,argv[i+1]);
+			if (strcmp(argv[i+1],"e") == 0){
+				opcion = "0";
+			}else{
+				opcion = "1";
+			}
 		}else if(strcmp(argv[i],"-i") == 0){
 			placa = malloc(sizeof(argv[i+1]));
 			strcpy(placa,argv[i+1]);
@@ -86,50 +150,70 @@ int main(int argc, char *argv[]) {
 	printf("OPCION: %s\n", opcion);
 	printf("PUERTO: %ld\n", puerto);*/
 
-	// Inicialización de variables:
-	int sockfd; /* descriptor a usar con el socket */
-	struct sockaddr_in their_addr; /* almacenara la direccion IP y numero de puerto del servidor */
-	struct hostent *he; /* para obtener nombre del host */
-	int numbytes; /* conteo de bytes a escribir */
+	// NUMERO RANDOM PARA EL NUM DE SECUENCIA
 
+	srand(time(NULL));
+	int random = (rand() % 999) + 1000; /* Se le suma 1000 para que sea de 4 digitos */
+	char num_sec[8] = "";
+	sprintf(num_sec,"%d",random);
+
+	// Creando el socket
+	struct Skt skt;
+	crearSocket(&skt,puerto);
+	struct hostent *he; /* para obtener nombre del host */
+	
 	/* convertimos el hostname a su direccion IP */
 	if ((he=gethostbyname(modulo)) == NULL) {
 		perror("gethostbyname");
 		exit(1);
 	}
 
-	/* Creamos el socket */
-	if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-		perror("socket");
-		exit(2);
-	}
-
-	char str[30] = "";
-	strcat(str, opcion);
-	strcat(str,"/");
-	strcat(str, placa);
-	printf("el string es: %s \n",str);
+	char mensaje[30] = ""; // Se puede hacer una func para formar el mensaje
+	strcat(mensaje, opcion);
+	strcat(mensaje,"/");
+	strcat(mensaje,"0"); // Tipo mensaje
+	strcat(mensaje,"/");
+	strcat(mensaje,num_sec);
+	strcat(mensaje,"/");
+	strcat(mensaje, placa);
+	printf("el string es: %s \n",mensaje);
 
 	/* a donde mandar */
-	their_addr.sin_family = AF_INET; /* usa host byte order */
-	their_addr.sin_port = htons(puerto); /* usa network byte order */
-	their_addr.sin_addr = *((struct in_addr *)he->h_addr);
-	bzero(&(their_addr.sin_zero), 8); /* pone en cero el resto */
+	skt.their_addr.sin_family = AF_INET; /* usa host byte order */
+	skt.their_addr.sin_port = htons(puerto); /* usa network byte order */
+	skt.their_addr.sin_addr = *((struct in_addr *)he->h_addr);
+	bzero(&(skt.their_addr.sin_zero), 8); /* pone en cero el resto */
 	
+	struct Parametros p;
+	p.skt = &skt;
+	int confirmado = 0; // Entero que compartiran los hilos para comunicarse y saber si el servidor respondio
+	p.confirmado = &confirmado;
+	p.mensaje = mensaje;
 	/* enviamos el mensaje */
-	char *mensaje = str;
-	if ((numbytes=sendto(sockfd,mensaje,strlen(mensaje),0,(struct sockaddr *)&their_addr,
+	if ((skt.numbytes=sendto(skt.sockfd,mensaje,strlen(mensaje),0,(struct sockaddr *)&(skt.their_addr),
 	sizeof(struct sockaddr))) == -1) {
 		perror("sendto");
 		exit(2);
 	}
-	
-	printf("enviados %d bytes hacia %s\n",numbytes,inet_ntoa(their_addr.sin_addr));
+	// CREANDO HILO PARA CONTAR TIEMPO DE ESPERA DEL MENSAJE ACK
+	pthread_t *thread;
+	int rc = pthread_create(&thread, NULL, reenviar, &p);
+	if (rc){
+		printf("ERROR; return code from pthread_create() is %d\n", rc);
+		exit(-1);
+	}
+
+	char buf[BUFFER_LEN];
+	skt.numbytes=recvfrom(skt.sockfd, buf, BUFFER_LEN, 0, (struct sockaddr *)&(skt.their_addr), 
+												  (socklen_t *)&(skt.addr_len));
+	confirmado = 1;
 	/* cierro socket */
-	close(sockfd);
+	close(skt.sockfd);
+	pthread_exit(NULL);
 	exit(0);
 }
 
 //----------------------------------------------------------------------------//
 //                         Fin del código principal                           //
 //----------------------------------------------------------------------------//
+
