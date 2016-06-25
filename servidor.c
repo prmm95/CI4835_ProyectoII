@@ -52,24 +52,37 @@ typedef struct tiempo {
 
 //----------------------------------------------------------------------------//
 
- typedef struct vehiculo {
+typedef struct vehiculo {
  	TiempoV Entrada;
  	TiempoV Salida;
  	int codigo;
  	int serial; // cambiar, porque no es int.
  	int tarifa;
  	struct vehiculo *siguiente;
- } Vehiculo;
+} Vehiculo;
 
+//----------------------------------------------------------------------------//
 
-struct Skt
-{
+struct Skt {
 	int sockfd;
 	struct sockaddr_in my_addr;
 	struct sockaddr_in their_addr;
 	int addr_len;
 	int numbytes;
-}skt;
+} skt;
+
+//----------------------------------------------------------------------------//
+
+typedef struct argHilo {
+	char *buf;
+	char *entradas;
+	char *salidas;
+} ArgumentoHilo;
+
+//----------------------------------------------------------------------------//
+
+// lista enlazada para los mensajes
+
 
 //----------------------------------------------------------------------------//
 //                          Definición de funciones                           //
@@ -256,19 +269,31 @@ void *crearSocket(struct Skt *skt,int puerto){
 
 //----------------------------------------------------------------------------//
 
-void *beginProtocol(void *buf){
-	char *buffer = buf;
-	printf("el paquete contiene: %s\n", buffer);
+void *beginProtocol(void *argumentos){
+
+	ArgumentoHilo *argumentosBP = argumentos;
+
+	printf("HOLA %s\n",argumentosBP->buf);
+	printf("QUE %s\n",argumentosBP->entradas);
+	printf("TAL %s\n",argumentosBP->salidas);
+
+	printf("el paquete contiene: %s\n", argumentosBP->buf);
 
 	const char separador[2] = "/";
 	char *operacion;
+	char *tipoMensaje;
+	char *numeroSecuencia;
 	char *placa;
 
-	operacion = strtok(buf,separador);
+	operacion = strtok(argumentosBP->buf,separador);
+	tipoMensaje = strtok(NULL,separador);
+	numeroSecuencia = strtok(NULL,separador);
 	placa = strtok(NULL,separador);
 
 	printf("La operacion es -> %s\n",operacion);
-	printf("La placaes -> %s\n",placa);
+	printf("El tipo de mensaje es -> %s\n",tipoMensaje);
+	printf("El numero de secuencia es es -> %s\n",numeroSecuencia);
+	printf("La placa es -> %s\n",placa);
 
 	// Se calcula el tiempo actual:
 	time_t t1 = time(NULL);
@@ -290,31 +315,27 @@ void *beginProtocol(void *buf){
  	carro1.codigo = 123;
  	carro1.serial = 456;
  	carro1.tarifa = 0;
-	char *rutaBitacora;
-	rutaBitacora = "hola";
 
-	/* No entendi esto. Creo que ya lo hago arriba
-	// Pasar la operacion como un int.
-	int opcion = 1;
+ 	int opcion = atoi(operacion);
 
     switch(opcion) {
 
     	case 1:
     		//agregarVehiculo(&inicioList,tiempo1,tiempo2,)
-			escribirBitacora(rutaBitacora,"e",carro1);
+			escribirBitacora(argumentosBP->entradas,"e",carro1);
 			break;
 
     	case 0:
     		// eliminar vehiculo:
     		// escribir Bitacora (salida):
-    		escribirBitacora(rutaBitacora,"s",carro1);
+    		escribirBitacora(argumentosBP->salidas,"s",carro1);
     		break;
 
     	default:
     		perror("Operación incorrecta\n");
     		break;
     }
-	*/
+	
 }
 
 //----------------------------------------------------------------------------//
@@ -359,7 +380,17 @@ int main(int argc, char *argv[]){
 						(socklen_t *)&(skt.addr_len))) != -1) {
 		buf[skt.numbytes] = '\0';
 
-		rc = pthread_create(&threads[num_hilos], NULL, beginProtocol, &buf);
+
+		ArgumentoHilo *argumentos = (ArgumentoHilo *) malloc(sizeof(ArgumentoHilo)); 
+		argumentos->buf = buf;
+		argumentos->entradas = entradas;
+		argumentos->salidas = salidas;
+
+		//printf("%HOLA s\n",argumentos->buf);
+		//printf("QUE %s\n",argumentos->entradas);
+		//printf("TAL %s\n",argumentos->salidas);
+
+		rc = pthread_create(&threads[num_hilos], NULL, beginProtocol,argumentos);
 
 		if (rc){
 			printf("ERROR; return code from pthread_create() is %d\n", rc);
