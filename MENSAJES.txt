@@ -1,0 +1,107 @@
+Mensajes:
+
+CLIENTE --> SERVIDOR:
+* Al pisar boton: Solicitud de puesto. DATOS: ID vehiculo, Tipo operacion (e)
+* Al pasar el ticket: Calculo de la tarifa. DATOS: ID vehiculo, Tipo operacion (s)
+
+---------------------------------------------------------------------------
+|	TIPO OPERACION	|	TIPO MENSAJE	|	NUM CONFIRMACION	|	DATOS |
+---------------------------------------------------------------------------
+
+Tipo operacion:
+
+* 0 : Entrada
+* 1 : Salida
+
+Tipo mensaje:
+* 0 : Mensaje de datos
+* 1 : Mensaje de ACK (Mensaje de control -confirmacion de recepcion-) (Puede que no haga
+falta, si nunca se llega a necesitar mandar un mensaje de ACK sin datos)
+* 2 : Mensaje mixto (Mensaje de confirmacion con datos)
+
+Num de confirmacion:
+
+* Entero no negativo generado de forma aleatoria por el cliente. Sirve principalemte
+para evitar duplicados en caso de que un cliente no reciba el ACK correspondiente
+y envie por segunda vez el mensaje, llegando este y posiblemente el primero
+retrasado. Cabe destacar que este valor no permite descartar paquetes enviados
+en una "sesion" anterior (una ejecucion antigua del comando sem_cli).
+
+Datos:
+
+Placa del vehiculo
+
+Entrada
+---------------------------------------------------------------------------
+|	0	|	0	|1521|XXXXXXX											  |
+---------------------------------------------------------------------------
+
+Salida
+---------------------------------------------------------------------------
+|	1	|XXXXXXX														  |
+---------------------------------------------------------------------------
+
+
+
+SERVIDOR --> CLIENTE:
+* Permitiendo el paso del cliente. DATOS: Aprobado (1), Hora, fecha y codigo.
+* Denegando la entrada por falta de puestos. DATOS: No aprobado (0) el paso.
+* Monto a cancelar calculado segun el ID y el tiempo de estadia. DATOS: Salida (2), Tarifa
+
+---------------------------------------------------------------------------
+|	TIPO MENSAJE	|						DATOS						  |
+---------------------------------------------------------------------------
+
+---------------------------------------------------------------------------
+|		0		|						VACIO							  |
+---------------------------------------------------------------------------
+
+Mensaje de aprobacion de entrada de un vehiculo con placa AAAHC51 a las 00:15:25 del dia 05/10/2016
+---------------------------------------------------------------------------
+|		1		|0510201600152512547									  |
+---------------------------------------------------------------------------
+
+Mensaje de salida de vehiculo con un monto de 150 (minimo 00000, maximo 9999 -casi 10 mil-)
+---------------------------------------------------------------------------
+|		2		|0150													  |
+---------------------------------------------------------------------------
+
+
+
+
+
+/*
+
+Logica del programa
+
+CLIENTE:
+1- Crear num random
+2- Armar Mensaje
+3- Crear Socket
+4- Mandar mensaje
+5- Crear thread y mandarlo al temporizador
+6- El hilo principal sigue y cae en revfrom (espera)
+7- En el temporizador hay un while que depende de un booleano que cicla mientas no
+se reciba respuesta del servidor. En cada repeticion cuenta un segundo y pregunta
+si el booleano cambio a True (cambiaria a true si el hilo principal dejara de escuchar
+porque recibio el ACK y sigue a la sig instruccion que pone el booleano en True). Si 
+no se ha recibido respuesta (el booleano sigue siendo falso), se reenvia el mensaje
+al servidor. Si se recibe respuesta se termina el hilo auxliar.
+8- Dado que el mensaje recibido es de tipo Mixto, el hilo principal solo tiene que
+sacar los datos del mensaje recibido y terminar la ejecucion del cliente.
+
+Nota: La variable booleana quiza necesite usar mutex para que el hilo principal
+escriba y el auxiliar lea.
+
+SERVIDOR:
+
+1- Un socket esta en espera constante
+2- Si se recibe un mensaje, se crea un nuevo hilo.
+3- Este hilo estara encargado de ensamblar los datos que requiere el cliente.
+Este mensaje de respuesta sera de ACK+datos (mixto)
+4- Este hilo debe Crear el mensaje con los datos, agregar a la lista de clientes
+el par (IP del cliente,Numero de secuencia), calcular el ID del vehiculo, registrar
+la operacion en las bitacoras, etc. Este mensaje debe tener el tipo
+de mensaje 2 (mixto).
+
+*/
