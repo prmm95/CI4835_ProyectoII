@@ -349,6 +349,20 @@ int main(int argc, char *argv[]){
 						(socklen_t *)&(skt.addr_len))) != -1) {
 		buf[skt.numbytes] = '\0';
 
+		const char separador[2] = "/";
+		char *operacion;
+		char *placa;
+
+		operacion = strtok(buf,separador);
+		placa = strtok(NULL,separador);
+
+		printf("La operacion es -> %s\n",operacion);
+		printf("La placaes -> %s\n",placa);
+
+		//printf("El tipo de operacion es %s \n",buf);
+
+		//printf("El mensaje completo es %s\n",buf);
+
 		// Organizar los argumentos: 
 		// - tiempo de entrada / salida
 	    // - vehiculo (con el tiempo ya puesto)

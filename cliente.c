@@ -104,9 +104,10 @@ int main(int argc, char *argv[]) {
 		exit(2);
 	}
 
-	char str[200];
-	strcpy(str,opcion);
-	strcat(str,placa);
+	char str[30] = "";
+	strcat(str, opcion);
+	strcat(str,"/");
+	strcat(str, placa);
 	printf("el string es: %s \n",str);
 
 	/* a donde mandar */
@@ -116,7 +117,7 @@ int main(int argc, char *argv[]) {
 	bzero(&(their_addr.sin_zero), 8); /* pone en cero el resto */
 	
 	/* enviamos el mensaje */
-	char *mensaje = "e";
+	char *mensaje = str;
 	if ((numbytes=sendto(sockfd,mensaje,strlen(mensaje),0,(struct sockaddr *)&their_addr,
 	sizeof(struct sockaddr))) == -1) {
 		perror("sendto");
