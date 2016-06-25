@@ -81,6 +81,7 @@ typedef struct argHilo {
 	int  *codigoVehiculo;
 	time_t tiempoSegundos;
 	Tiempo tiempoFormato;
+	Vehiculo **listaVehiculos;
 } ArgumentoHilo;
 
 //----------------------------------------------------------------------------//
@@ -95,20 +96,58 @@ typedef struct argHilo {
 // Notas:
 // borrar de la lista al vehiculo cuando sale
 
-void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, TiempoV Sal, int *cod, char *ser) {
+void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) {
+	/*
+	 * Descripción: 
+	 *
+	 * Variables de entrada:
+	 *
+	 * Variables de salida:
+	 *
+	*/
+
+	// Inicializción de variables:
+	// Revisar si esto puede ir en el main para no abrir y cerrar el fb cada vz.
+	FILE *bitacora;
+	bitacora = fopen(rutaBitacora,"a"); // no se si pasar esto como parametro para no abrir y cerrar el df cada vez
+	Tiempo fechaB;
+	
+	// No se si este if se puede hacer mas elegante:
+	if (tipoOperacion == "e") {
+		fechaB = vehiculo.Entrada.tiempoF;
+	}
+	
+	else {
+		fechaB = vehiculo.Salida.tiempoF;
+	}
+		
+	fprintf(bitacora,"-------------------\n");
+	fprintf(bitacora,"Fecha: %d/%02d/%d \n",fechaB.tm_mday,fechaB.tm_mon + 1,fechaB.tm_year + 1900);
+	fprintf(bitacora,"Hora: %02d:%02d:%02d\n", fechaB.tm_hour, fechaB.tm_min, fechaB.tm_sec);
+	fprintf(bitacora,"Serial: %s \n",vehiculo.serial);
+	fprintf(bitacora,"Código: %d",vehiculo.codigo);
+	fprintf(bitacora,"\n-------------------\n");
+	
+	fclose(bitacora);
+	
+}
+
+
+void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char *bitacora) {
 			
 	// Se crea el nuevo vehiculo que se agregara a la lista enlazada:
 	Vehiculo *nuevoVehiculo = (Vehiculo *) malloc(sizeof(Vehiculo));
 	nuevoVehiculo->codigo = *cod;
  	nuevoVehiculo->serial = ser;
  	nuevoVehiculo->Entrada = Ent;
- 	nuevoVehiculo->Salida = Sal;
  	nuevoVehiculo->siguiente = NULL;
+ 	nuevoVehiculo->tarifa = 0;
  	// Se actualiza el contador de vehiculo:
  	*cod = *cod + 1;
 
  	// En caso de agregar el primer vehiculo a la lista:
  	if (*lisVehic == NULL) {
+ 		printf("ES NULL\n");
  		*lisVehic = nuevoVehiculo;
  	}
  	
@@ -129,6 +168,8 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, TiempoV Sal, int *cod, cha
  		aux->siguiente = nuevoVehiculo;
  	
  	}
+
+ 	escribirBitacora(bitacora,"e",*nuevoVehiculo);
  
 }
 
@@ -167,53 +208,22 @@ void eliminarVehiculo(Vehiculo **inicioList, int cod) {
 void imprimirLista(Vehiculo **inicioList) {
 
 	Vehiculo *aux = *inicioList;
+	int i = 0;
 
 	while (aux != NULL) {
 		printf("El codigo del vehiculo es %d\n",aux->codigo);
-
+		i++;
 		aux = aux->siguiente;
 	}
+
+	printf("Numero de elementos en la lista -> %d\n",i);
 
 }
 
 
 //----------------------------------------------------------------------------//
 
-void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) {
-	/*
-	 * Descripción: 
-	 *
-	 * Variables de entrada:
-	 *
-	 * Variables de salida:
-	 *
-	*/
 
-	// Inicializción de variables:
-	// Revisar si esto puede ir en el main para no abrir y cerrar el fb cada vz.
-	FILE *bitacora;
-	bitacora = fopen(rutaBitacora,"a"); // no se si pasar esto como parametro para no abrir y cerrar el df cada vez
-	Tiempo fechaB;
-	
-	// No se si este if se puede hacer mas elegante:
-	if (tipoOperacion == "e") {
-		fechaB = vehiculo.Entrada.tiempoF;
-	}
-	
-	else {
-		fechaB = vehiculo.Salida.tiempoF;
-	}
-		
-	fprintf(bitacora,"-------------------\n");
-	fprintf(bitacora,"Fecha: %d/%02d/%d \n",fechaB.tm_mday,fechaB.tm_mon + 1,fechaB.tm_year + 1900);
-	fprintf(bitacora,"Hora: %02d:%02d:%02d\n", fechaB.tm_hour, fechaB.tm_min, fechaB.tm_sec);
-	fprintf(bitacora,"Serial: %s \n",vehiculo.serial);
-	fprintf(bitacora,"Código: %d",vehiculo.codigo);
-	fprintf(bitacora,"\n-------------------\n");
-	
-	fclose(bitacora);
-	
-}
 
 //----------------------------------------------------------------------------//
 
@@ -292,10 +302,18 @@ void *beginProtocol(void *argumentos) {
 
 	time_t t1 = argumentosBP->tiempoSegundos;
 	Tiempo tm1 = argumentosBP->tiempoFormato;
+
+	TiempoV tiempo1;
+	tiempo1.tiempoF = tm1;
+	tiempo1.segundos = t1;
+
+
 	time_t t2 = t1 + 7201;
 	Tiempo tm2 = *localtime(&t2);
+
+	//armar tiempo 1
 	// Prueba
-	Vehiculo *inicioList = NULL;
+	Vehiculo **inicioList = argumentosBP->listaVehiculos;
 
 
  	// prints
@@ -328,24 +346,11 @@ void *beginProtocol(void *argumentos) {
 				
 				// semaforo:
 				*puestosOcupados = *puestosOcupados + 1;
-
-
-				Vehiculo carro1;
-
-				carro1.Entrada.tiempoF = tm1;
-				carro1.Entrada.segundos = t1;
- 				carro1.Salida.tiempoF = tm2;
- 				carro1.Salida.segundos = t2;
- 				// Se le asigna el codigo al vehiculo y se aumenta:
- 				carro1.codigo = *codigoVehiculo;
- 				*codigoVehiculo = *codigoVehiculo + 1;
- 				carro1.serial = placa;
- 				carro1.tarifa = 0;
-
 				// Se agrega el Vehiculo a la estructura:
-				//agregarVehiculo(&inicioList,tiempo1,tiempo2);
+				agregarVehiculo(inicioList,tiempo1,codigoVehiculo,placa,argumentosBP->entradas);
 				// Se escribe la entrada en la Bitacora:
-				escribirBitacora(argumentosBP->entradas,"e",carro1);
+				imprimirLista(inicioList);
+				
 				break;
 			}
 
@@ -356,8 +361,11 @@ void *beginProtocol(void *argumentos) {
 
 		// Salida:
     	case 0:
+
+    		//carro1.Salida.tiempoF = tm2;
+ 			//carro1.Salida.segundos = t2
     		// eliminar vehiculo:
-    		// escribir Bitacora (salida):
+    		// escribir Bitacora (salida);
     		//escribirBitacora(argumentosBP->salidas,"s",carro1);
     		break;
 
@@ -377,6 +385,7 @@ int main(int argc, char *argv[]){
 	int puestosOcupados = 0;
  	int codigoVehiculo = 0; // Global
 	int i;
+	Vehiculo *listaVehiculos = NULL;
 
 
 	long puerto;
@@ -429,6 +438,7 @@ int main(int argc, char *argv[]){
 		argumentos->codigoVehiculo = &codigoVehiculo;
 		argumentos->tiempoSegundos = t1;
 		argumentos->tiempoFormato = tm1;
+		argumentos->listaVehiculos = &listaVehiculos;
 
 		rc = pthread_create(&threads[num_hilos], NULL, beginProtocol,argumentos);
 
@@ -442,6 +452,9 @@ int main(int argc, char *argv[]){
 		}
 	}
 	/* cerramos descriptor del skt */
+
+	imprimirLista(&listaVehiculos);
+
 	close(skt.sockfd);
 	pthread_exit(NULL);
 	exit (0);
