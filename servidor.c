@@ -56,7 +56,7 @@ typedef struct vehiculo {
  	TiempoV Entrada;
  	TiempoV Salida;
  	int codigo;
- 	int serial; // cambiar, porque no es int.
+ 	char *serial; // cambiar, porque no es int.
  	int tarifa;
  	struct vehiculo *siguiente;
 } Vehiculo;
@@ -77,6 +77,10 @@ typedef struct argHilo {
 	char *buf;
 	char *entradas;
 	char *salidas;
+	int  *puestosOcupados;
+	int  *codigoVehiculo;
+	time_t tiempoSegundos;
+	Tiempo tiempoFormato;
 } ArgumentoHilo;
 
 //----------------------------------------------------------------------------//
@@ -91,7 +95,7 @@ typedef struct argHilo {
 // Notas:
 // borrar de la lista al vehiculo cuando sale
 
-void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, TiempoV Sal, int *cod, int ser) {
+void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, TiempoV Sal, int *cod, char *ser) {
 			
 	// Se crea el nuevo vehiculo que se agregara a la lista enlazada:
 	Vehiculo *nuevoVehiculo = (Vehiculo *) malloc(sizeof(Vehiculo));
@@ -203,7 +207,7 @@ void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) 
 	fprintf(bitacora,"-------------------\n");
 	fprintf(bitacora,"Fecha: %d/%02d/%d \n",fechaB.tm_mday,fechaB.tm_mon + 1,fechaB.tm_year + 1900);
 	fprintf(bitacora,"Hora: %02d:%02d:%02d\n", fechaB.tm_hour, fechaB.tm_min, fechaB.tm_sec);
-	fprintf(bitacora,"Serial: %d \n",vehiculo.serial);
+	fprintf(bitacora,"Serial: %s \n",vehiculo.serial);
 	fprintf(bitacora,"Código: %d",vehiculo.codigo);
 	fprintf(bitacora,"\n-------------------\n");
 	
@@ -269,73 +273,98 @@ void *crearSocket(struct Skt *skt,int puerto){
 
 //----------------------------------------------------------------------------//
 
-void *beginProtocol(void *argumentos){
+void *beginProtocol(void *argumentos) {
 
+	// Inicializacion de variables:
 	ArgumentoHilo *argumentosBP = argumentos;
-
-	printf("HOLA %s\n",argumentosBP->buf);
-	printf("QUE %s\n",argumentosBP->entradas);
-	printf("TAL %s\n",argumentosBP->salidas);
-
-	printf("el paquete contiene: %s\n", argumentosBP->buf);
-
 	const char separador[2] = "/";
 	char *operacion;
 	char *tipoMensaje;
 	char *numeroSecuencia;
 	char *placa;
-
+	int  *puestosOcupados = argumentosBP->puestosOcupados;
+	int  *codigoVehiculo = argumentosBP->codigoVehiculo;
 	operacion = strtok(argumentosBP->buf,separador);
 	tipoMensaje = strtok(NULL,separador);
 	numeroSecuencia = strtok(NULL,separador);
 	placa = strtok(NULL,separador);
+ 	int opcion = atoi(operacion);
 
-	printf("La operacion es -> %s\n",operacion);
-	printf("El tipo de mensaje es -> %s\n",tipoMensaje);
-	printf("El numero de secuencia es es -> %s\n",numeroSecuencia);
-	printf("La placa es -> %s\n",placa);
-
-	// Se calcula el tiempo actual:
-	time_t t1 = time(NULL);
-	Tiempo tm1 = *localtime(&t1);
+	time_t t1 = argumentosBP->tiempoSegundos;
+	Tiempo tm1 = argumentosBP->tiempoFormato;
 	time_t t2 = t1 + 7201;
 	Tiempo tm2 = *localtime(&t2);
-	// Se muestra en pantalla el tiempo actual:
-	printf("Fecha: %02d/%02d/%d \n",tm1.tm_mday,tm1.tm_mon + 1,tm1.tm_year + 1900);
-	printf("Hora: %02d:%02d:%02d \n", tm1.tm_hour, tm1.tm_min, tm1.tm_sec);
-
 	// Prueba
 	Vehiculo *inicioList = NULL;
 
-	Vehiculo carro1;
-	carro1.Entrada.tiempoF = tm1;
-	carro1.Entrada.segundos = t1;
- 	carro1.Salida.tiempoF = tm2;
- 	carro1.Salida.segundos = t2;
- 	carro1.codigo = 123;
- 	carro1.serial = 456;
- 	carro1.tarifa = 0;
 
- 	int opcion = atoi(operacion);
+ 	// prints
+ 	// Se muestra en pantalla el tiempo actual:
+ 	printf("HILO\n");
+	printf("Fecha: %02d/%02d/%d \n",tm1.tm_mday,tm1.tm_mon + 1,tm1.tm_year + 1900);
+	printf("Hora: %02d:%02d:%02d \n", tm1.tm_hour, tm1.tm_min, tm1.tm_sec);
+	// printf("HOLA %s\n",argumentosBP->buf);
+	// printf("QUE %s\n",argumentosBP->entradas);
+	// printf("TAL %s\n",argumentosBP->salidas);
+	// printf("el paquete contiene: %s\n", argumentosBP->buf);
+	// printf("La operacion es -> %s\n",operacion);
+	// printf("El tipo de mensaje es -> %s\n",tipoMensaje);
+	// printf("El numero de secuencia es es -> %s\n",numeroSecuencia);
+	printf("La placa es -> %s\n",placa);
+	// printf("El numero de puestos ocupados es -> %d\n",*puestosOcupados);
+	// printf("El codigo del Vehiculo es -> %d\n",*argumentosBP->codigoVehiculo);
+
+
+ 	// Verificacion de la operación (Entrada o salida):
 
     switch(opcion) {
 
+    	// Entrada:
     	case 1:
-    		//agregarVehiculo(&inicioList,tiempo1,tiempo2,)
-			escribirBitacora(argumentosBP->entradas,"e",carro1);
-			break;
 
+    		// Verificacion de puestos disponibles:
+			if (*puestosOcupados <= NUM_PUESTOS) {
+				printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
+				
+				// semaforo:
+				*puestosOcupados = *puestosOcupados + 1;
+
+
+				Vehiculo carro1;
+
+				carro1.Entrada.tiempoF = tm1;
+				carro1.Entrada.segundos = t1;
+ 				carro1.Salida.tiempoF = tm2;
+ 				carro1.Salida.segundos = t2;
+ 				// Se le asigna el codigo al vehiculo y se aumenta:
+ 				carro1.codigo = *codigoVehiculo;
+ 				*codigoVehiculo = *codigoVehiculo + 1;
+ 				carro1.serial = placa;
+ 				carro1.tarifa = 0;
+
+				// Se agrega el Vehiculo a la estructura:
+				//agregarVehiculo(&inicioList,tiempo1,tiempo2);
+				// Se escribe la entrada en la Bitacora:
+				escribirBitacora(argumentosBP->entradas,"e",carro1);
+				break;
+			}
+
+			else {
+				printf("NO HAY PUESTOS \n");
+				break;
+			}
+
+		// Salida:
     	case 0:
     		// eliminar vehiculo:
     		// escribir Bitacora (salida):
-    		escribirBitacora(argumentosBP->salidas,"s",carro1);
+    		//escribirBitacora(argumentosBP->salidas,"s",carro1);
     		break;
 
     	default:
     		perror("Operación incorrecta\n");
     		break;
-    }
-	
+    }	
 }
 
 //----------------------------------------------------------------------------//
@@ -380,15 +409,26 @@ int main(int argc, char *argv[]){
 						(socklen_t *)&(skt.addr_len))) != -1) {
 		buf[skt.numbytes] = '\0';
 
+		// Se calcula el tiempo de llegada del mensaje al servidor:
+		time_t t1 = time(NULL);
+		Tiempo tm1 = *localtime(&t1);
 
+	 	//printf("MENSAJE\n");
+		//printf("Fecha: %02d/%02d/%d \n",tm1.tm_mday,tm1.tm_mon + 1,tm1.tm_year + 1900);
+		//printf("Hora: %02d:%02d:%02d \n", tm1.tm_hour, tm1.tm_min, tm1.tm_sec);
+		//printf("%HOLA s\n",argumentos->buf);
+		//printf("QUE %s\n",argumentos->entradas);
+		//printf("TAL %s\n",argumentos->salidas);
+
+		// Se crea la estructura de datos de argumentos del hilo:
 		ArgumentoHilo *argumentos = (ArgumentoHilo *) malloc(sizeof(ArgumentoHilo)); 
 		argumentos->buf = buf;
 		argumentos->entradas = entradas;
 		argumentos->salidas = salidas;
-
-		//printf("%HOLA s\n",argumentos->buf);
-		//printf("QUE %s\n",argumentos->entradas);
-		//printf("TAL %s\n",argumentos->salidas);
+		argumentos->puestosOcupados = &puestosOcupados;
+		argumentos->codigoVehiculo = &codigoVehiculo;
+		argumentos->tiempoSegundos = t1;
+		argumentos->tiempoFormato = tm1;
 
 		rc = pthread_create(&threads[num_hilos], NULL, beginProtocol,argumentos);
 
