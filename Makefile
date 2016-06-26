@@ -1,7 +1,10 @@
 #
 # Archivo: Makefile
 #
-# Descripción:
+# Descripción: Archivo que permite realizar la compilación de los archivos 
+# 'cliente.c' y 'servidor.c' para crear los ejecutables 'sem_cli' y 'sem_srv' 
+# respectivamente. A su vez, permite eliminar los mismos al ejecutar el 
+# comando 'make clean' en su terminal.
 #
 # Autores:
 #	Samuel Arleo, 10-10969.
