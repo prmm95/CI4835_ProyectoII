@@ -177,7 +177,7 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char 
 
 //----------------------------------------------------------------------------//
 
-void eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char *bitacora) {
+void eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char *bitacora, int *puestosOcupados) {
 
 	Vehiculo *aux = *inicioList;
 	Vehiculo *anterior = NULL;
@@ -222,6 +222,7 @@ void eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char
 		printf("LA TARIFA ES: %d\n",tarifaVehiculo);
 		escribirBitacora(bitacora,"s",*aux);
 		free(aux);
+		*puestosOcupados = *puestosOcupados -1;
 	}
 	
 	else {
@@ -374,7 +375,7 @@ void *beginProtocol(void *argumentos) {
 
     		// Verificacion de puestos disponibles:
 			if (*puestosOcupados <= NUM_PUESTOS) {
-				printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
+				//printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
 				
 				// semaforo:
 				*puestosOcupados = *puestosOcupados + 1;
@@ -397,15 +398,18 @@ void *beginProtocol(void *argumentos) {
     		//carro1.Salida.tiempoF = tm2;
  			//carro1.Salida.segundos = t2
     		// eliminar vehiculo:
-    		eliminarVehiculo(inicioList,placa,tiempo1,argumentosBP->salidas);
+    		eliminarVehiculo(inicioList,placa,tiempo1,argumentosBP->salidas,puestosOcupados);
     		// escribir Bitacora (salida);
     		//escribirBitacora(argumentosBP->salidas,"s",carro1);
     		break;
 
     	default:
     		perror("Operación incorrecta\n");
-    		break;
-    }	
+    		break;  
+    }
+
+    printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
+	
 }
 
 //----------------------------------------------------------------------------//
