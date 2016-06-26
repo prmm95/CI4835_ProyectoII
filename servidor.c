@@ -38,6 +38,26 @@
 #define BUFFER_LEN 1024
 
 //----------------------------------------------------------------------------//
+//                      Definición de variables globales                      //
+//----------------------------------------------------------------------------//
+
+// Descripción:
+pthread_mutex_t semaforoListaVehiculos = PTHREAD_MUTEX_INITIALIZER;
+
+// Descripción:
+pthread_mutex_t semaforoListaSecuencias = PTHREAD_MUTEX_INITIALIZER;
+
+// Descripción:
+pthread_mutex_t semaforoBitacora = PTHREAD_MUTEX_INITIALIZER;
+
+// Descripción:
+pthread_mutex_t semaforoPuestosOcupados = PTHREAD_MUTEX_INITIALIZER;
+
+// Descripción:
+pthread_mutex_t semaforoCodigoVehiculo = PTHREAD_MUTEX_INITIALIZER;
+
+
+//----------------------------------------------------------------------------//
 //                      Definición del tipos estructurados                    //
 //----------------------------------------------------------------------------//
 
@@ -109,7 +129,6 @@ void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) 
 	// Inicializción de variables:
 	// Revisar si esto puede ir en el main para no abrir y cerrar el fb cada vz.
 	FILE *bitacora;
-	bitacora = fopen(rutaBitacora,"a"); // no se si pasar esto como parametro para no abrir y cerrar el df cada vez
 	Tiempo fechaB;
 	
 	// No se si este if se puede hacer mas elegante:
@@ -120,15 +139,17 @@ void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) 
 	else {
 		fechaB = vehiculo.Salida.tiempoF;
 	}
-		
+	
+	pthread_mutex_lock(&semaforoBitacora);
+	bitacora = fopen(rutaBitacora,"a"); // no se si pasar esto como parametro para no abrir y cerrar el df cada vez
 	fprintf(bitacora,"-------------------\n");
 	fprintf(bitacora,"Fecha: %d/%02d/%d \n",fechaB.tm_mday,fechaB.tm_mon + 1,fechaB.tm_year + 1900);
 	fprintf(bitacora,"Hora: %02d:%02d:%02d\n", fechaB.tm_hour, fechaB.tm_min, fechaB.tm_sec);
 	fprintf(bitacora,"Serial: %s \n",vehiculo.serial);
 	fprintf(bitacora,"Código: %d",vehiculo.codigo);
-	fprintf(bitacora,"\n-------------------\n");
-	
+	fprintf(bitacora,"\n-------------------\n");	
 	fclose(bitacora);
+	pthread_mutex_unlock(&semaforoBitacora);
 	
 }
 
@@ -144,9 +165,14 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char 
  	nuevoVehiculo->Entrada = Ent;
  	nuevoVehiculo->siguiente = NULL;
  	nuevoVehiculo->tarifa = 0;
+
+ 	pthread_mutex_lock(&semaforoCodigoVehiculo);
  	// Se actualiza el contador de vehiculo:
  	*cod = *cod + 1;
+ 	pthread_mutex_unlock(&semaforoCodigoVehiculo);
 
+
+ 	pthread_mutex_lock(&semaforoListaVehiculos);
  	// En caso de agregar el primer vehiculo a la lista:
  	if (*lisVehic == NULL) {
  		printf("ES NULL\n");
@@ -170,6 +196,7 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char 
  		aux->siguiente = nuevoVehiculo;
  	
  	}
+ 	pthread_mutex_unlock(&semaforoListaVehiculos);
 
  	escribirBitacora(bitacora,"e",*nuevoVehiculo);
  
@@ -185,6 +212,8 @@ void eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char
 	int comparador;
 	int tarifaVehiculo = 0;
 
+
+	pthread_mutex_lock(&semaforoListaVehiculos);
 	// Busca al vehiculo a eliminar y elimina su referencia de la lista:
 	while (aux != NULL) {
 
@@ -212,6 +241,8 @@ void eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char
 		aux = aux->siguiente;
 
 	}
+	pthread_mutex_unlock(&semaforoListaVehiculos);
+
 
 	// Con el vehiculo a eliminar, se acualiz
 	if (encontrado) {
@@ -221,8 +252,14 @@ void eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char
 		tarifaVehiculo = calcular_costo(*aux);
 		printf("LA TARIFA ES: %d\n",tarifaVehiculo);
 		escribirBitacora(bitacora,"s",*aux);
+
+		pthread_mutex_lock(&semaforoListaVehiculos);
 		free(aux);
+		pthread_mutex_unlock(&semaforoListaVehiculos);
+
+		pthread_mutex_lock(&semaforoPuestosOcupados);
 		*puestosOcupados = *puestosOcupados -1;
+		pthread_mutex_unlock(&semaforoPuestosOcupados);
 	}
 	
 	else {
@@ -377,8 +414,11 @@ void *beginProtocol(void *argumentos) {
 			if (*puestosOcupados <= NUM_PUESTOS) {
 				//printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
 				
-				// semaforo:
+
+				pthread_mutex_lock(&semaforoPuestosOcupados);
 				*puestosOcupados = *puestosOcupados + 1;
+				pthread_mutex_unlock(&semaforoPuestosOcupados);
+
 				// Se agrega el Vehiculo a la estructura:
 				agregarVehiculo(inicioList,tiempo1,codigoVehiculo,placa,argumentosBP->entradas);
 				// Se escribe la entrada en la Bitacora:
