@@ -25,6 +25,7 @@
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <time.h>
+#include "lib_socket.h"
 
 //----------------------------------------------------------------------------//
 //                          Definición de constantes                          //
@@ -32,16 +33,6 @@
 
 #define SERVER_PORT 4321
 #define BUFFER_LEN 1024
-
-
-struct Skt
-{
-	int sockfd;
-	struct sockaddr_in my_addr;
-	struct sockaddr_in their_addr;
-	int addr_len;
-	int numbytes;
-}skt;
 
 struct Parametros
 {
@@ -62,29 +53,6 @@ char* concat(char *s1, char *s2) {
     strcpy(result,"/");
     strcat(result, s2);
     return result;
-}
-
-void *crearSocket(struct Skt *skt,int puerto){ // FUNCION DUPLICADA, QUITAR CUANDO HAGAMOS EL HEADER
-
-	if ((skt->sockfd = socket(AF_INET, SOCK_DGRAM, 0)) == -1) {
-		perror("skt");
-		exit(1);
-	}
-
-	/* Se establece la estructura my_addr para luego llamar a bind() */
-	skt->my_addr.sin_family = AF_INET; /* usa host byte order */
-	skt->my_addr.sin_port = htons(puerto+1); /* usa network byte order */
-	skt->my_addr.sin_addr.s_addr = INADDR_ANY; /* escuchamos en todas las IPs */
-	bzero(&(skt->my_addr.sin_zero), 8); /* rellena con ceros el resto de la estructura */
-	/* Se le da un nombre al skt (se lo asocia al puerto e IPs) */
-
-	printf("Asignado direccion al skt ....\n");
-	printf("FILE-DESC: %d\n",skt->sockfd);
-	if (bind(skt->sockfd, (struct sockaddr *)&(skt->my_addr), 
-							 sizeof(struct sockaddr)) == -1) {
-		perror("bind");
-		exit(2);
-	}
 }
 
 void *reenviar(void *parametros){
@@ -159,7 +127,7 @@ int main(int argc, char *argv[]) {
 
 	// Creando el socket
 	struct Skt skt;
-	crearSocket(&skt,puerto);
+	crearSocket(&skt,puerto,0);
 	struct hostent *he; /* para obtener nombre del host */
 	
 	/* convertimos el hostname a su direccion IP */
