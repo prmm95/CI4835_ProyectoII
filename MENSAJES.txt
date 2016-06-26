@@ -3,21 +3,16 @@ Mensajes:
 CLIENTE --> SERVIDOR:
 * Al pisar boton: Solicitud de puesto. DATOS: ID vehiculo, Tipo operacion (e)
 * Al pasar el ticket: Calculo de la tarifa. DATOS: ID vehiculo, Tipo operacion (s)
-
+* Al recibir un mensaje del servidor: Confirmacion. Datos: 
 ---------------------------------------------------------------------------
-|	TIPO OPERACION	|	TIPO MENSAJE	|	NUM CONFIRMACION	|	DATOS |
+|	TIPO OPERACION	|		NUM SECUENCIA		|			DATOS 			|
 ---------------------------------------------------------------------------
 
 Tipo operacion:
 
 * 0 : Entrada
 * 1 : Salida
-
-Tipo mensaje:
-* 0 : Mensaje de datos
-* 1 : Mensaje de ACK (Mensaje de control -confirmacion de recepcion-) (Puede que no haga
-falta, si nunca se llega a necesitar mandar un mensaje de ACK sin datos)
-* 2 : Mensaje mixto (Mensaje de confirmacion con datos)
+* 2 : Mensaje ACK
 
 Num de confirmacion:
 
@@ -33,41 +28,49 @@ Placa del vehiculo
 
 Entrada
 ---------------------------------------------------------------------------
-|	0	|	0	|1521|XXXXXXX											  |
+|	0	|1521|XXXXXXX													  |
 ---------------------------------------------------------------------------
 
 Salida
 ---------------------------------------------------------------------------
-|	1	|XXXXXXX														  |
+|	1	|1521|XXXXXXX													  |
 ---------------------------------------------------------------------------
 
+ACK
+---------------------------------------------------------------------------
+|	2	|1521|															  |
+---------------------------------------------------------------------------
 
 
 SERVIDOR --> CLIENTE:
 * Permitiendo el paso del cliente. DATOS: Aprobado (1), Hora, fecha y codigo.
 * Denegando la entrada por falta de puestos. DATOS: No aprobado (0) el paso.
 * Monto a cancelar calculado segun el ID y el tiempo de estadia. DATOS: Salida (2), Tarifa
+---------------------------------------------------------------------------
+|	TIPO OPERACION	|	NUM SECUENCIA	|				DATOS			  |
+---------------------------------------------------------------------------
+
+Denegando la entrada
 
 ---------------------------------------------------------------------------
-|	TIPO MENSAJE	|						DATOS						  |
----------------------------------------------------------------------------
-
----------------------------------------------------------------------------
-|		0		|						VACIO							  |
+|		0		|		1523		|		VACIO						  |
 ---------------------------------------------------------------------------
 
 Mensaje de aprobacion de entrada de un vehiculo con placa AAAHC51 a las 00:15:25 del dia 05/10/2016
 ---------------------------------------------------------------------------
-|		1		|0510201600152512547									  |
+|		1		|		1523		|0510201600152512547				  |
 ---------------------------------------------------------------------------
 
 Mensaje de salida de vehiculo con un monto de 150 (minimo 00000, maximo 9999 -casi 10 mil-)
 ---------------------------------------------------------------------------
-|		2		|0150													  |
+|		2		|		1523		|0150								  |
 ---------------------------------------------------------------------------
 
 
-
+Nota: No sera necesario enviar mensajes de confirmacion del servidor al cliente.
+La confirmacion sera el mismo mensaje con la respuesta. Por esta razon no se
+ha incluido un campo de tipo de mensaje para diferenciar los mensajes de ACK de
+los mensajes con datos.
 
 
 /*
@@ -105,3 +108,10 @@ la operacion en las bitacoras, etc. Este mensaje debe tener el tipo
 de mensaje 2 (mixto).
 
 */
+
+1- Estructura para almacenar un ID del host de origen y el ACK
+2- Cuando un mensaje llega al servidor se hace lo siguiente:
+	* Se parsea el primer campo del mensaje
+		* Si el campo es 0 (cliente solicita entrar al estacionamiento)
+			* Si hay puestos disponibles:
+				* Se arma un mensaje 

@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
 
 	// NUMERO RANDOM PARA EL NUM DE SECUENCIA
 
-	srand(time(NULL));
+	srand(time(NULL)); // No hace falta (en el servidor si)
 	int random = (rand() % 999) + 1000; /* Se le suma 1000 para que sea de 4 digitos */
 	char num_sec[8] = "";
 	sprintf(num_sec,"%d",random);
