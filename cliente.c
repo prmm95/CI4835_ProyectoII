@@ -121,18 +121,68 @@ int main(int argc, char *argv[]) {
 		perror("sendto");
 		exit(2);
 	}
-	// CREANDO HILO PARA CONTAR TIEMPO DE ESPERA DEL MENSAJE ACK
-	pthread_t *thread;
-	int rc = pthread_create(&thread, NULL, reenviar, &p);
-	if (rc){
-		printf("ERROR; return code from pthread_create() is %d\n", rc);
-		exit(-1);
-	}
+	// // CREANDO HILO PARA CONTAR TIEMPO DE ESPERA DEL MENSAJE ACK
+	// pthread_t *thread;
+	// int rc = pthread_create(&thread, NULL, reenviar, &p);
+	// if (rc){
+	// 	printf("ERROR; return code from pthread_create() is %d\n", rc);
+	// 	exit(-1);
+	// }
 
 	char buf[BUFFER_LEN];
 	skt.numbytes=recvfrom(skt.sockfd, buf, BUFFER_LEN, 0, (struct sockaddr *)&(skt.their_addr), 
-												  (socklen_t *)&(skt.addr_len));
-	confirmado = 1;
+	 											  (socklen_t *)&(skt.addr_len));
+
+	char *tipoMensaje;
+	char separador[2] = "/";
+
+	tipoMensaje = strtok(buf,separador);
+
+	if ( strcmp(tipoMensaje,"0") == 0) {
+		printf("Disculpe, el estacionamiento no tiene puestos disponibles.\n");
+	}
+
+	else if (strcmp(tipoMensaje,"1") == 0) {
+
+		char *dia;
+		char *mes;
+		char *anho;
+		char *hora;
+		char *minuto;
+		char *segundo;
+		char *codigo;
+
+		dia = strtok(NULL,separador);
+		mes = strtok(NULL,separador);
+		anho = strtok(NULL,separador);
+		hora = strtok(NULL,separador);
+		minuto = strtok(NULL,separador);
+		segundo = strtok(NULL,separador);
+		codigo = strtok(NULL,separador);
+
+		printf("\n---------------\n");
+		printf("ENTRADA:\n");
+		printf("    - Código: %s\n",codigo);
+		printf("    - Fecha: %s/%s/%s \n",dia,mes,anho);
+		printf("    - Hora: %s:%s:%s",hora,minuto,segundo);
+		printf("\n---------------\n");
+
+	}
+
+	else if (strcmp(tipoMensaje,"2") == 0) {
+
+		char *monto;
+
+		monto = strtok(NULL,separador);
+
+
+		printf("\n---------------\n");
+		printf("SALIDA: \n");
+		printf("    - Precio: %s Bs.",monto);
+		printf("\n---------------\n");
+	}
+
+	// confirmado = 1;
 	/* cierro socket */
 	close(skt.sockfd);
 	pthread_exit(NULL);
