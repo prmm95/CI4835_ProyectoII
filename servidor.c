@@ -137,8 +137,10 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char 
 			
 	// Se crea el nuevo vehiculo que se agregara a la lista enlazada:
 	Vehiculo *nuevoVehiculo = (Vehiculo *) malloc(sizeof(Vehiculo));
+	char *serialInd = (char *) malloc(sizeof(ser));
+	strcpy(serialInd,ser);
 	nuevoVehiculo->codigo = *cod;
- 	nuevoVehiculo->serial = ser;
+ 	nuevoVehiculo->serial = serialInd;
  	nuevoVehiculo->Entrada = Ent;
  	nuevoVehiculo->siguiente = NULL;
  	nuevoVehiculo->tarifa = 0;
@@ -186,6 +188,7 @@ void eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS) {
 	while (aux != NULL) {
 
 		if (aux->serial == serial) {
+			printf("SERIAL AUX: %s / SERIAL A ELIMINAR %s \n",aux->serial,serial);
 
 			if (anterior == NULL) {
 				*inicioList = aux->siguiente;
@@ -228,7 +231,10 @@ void imprimirLista(Vehiculo **inicioList) {
 	int i = 0;
 
 	while (aux != NULL) {
-		printf("El codigo del vehiculo es %d\n",aux->codigo);
+		printf("-------------------\n");
+		printf("Serial: %s \n",aux->serial);
+		printf("Código: %d",aux->codigo);
+		printf("\n-------------------\n");
 		i++;
 		aux = aux->siguiente;
 	}
@@ -308,14 +314,17 @@ void *beginProtocol(void *argumentos) {
 	char *operacion;
 	char *tipoMensaje;
 	char *numeroSecuencia;
-	char *placa;
+	char *placaStr;
 	int  *puestosOcupados = argumentosBP->puestosOcupados;
 	int  *codigoVehiculo = argumentosBP->codigoVehiculo;
 	operacion = strtok(argumentosBP->buf,separador);
 	tipoMensaje = strtok(NULL,separador);
 	numeroSecuencia = strtok(NULL,separador);
-	placa = strtok(NULL,separador);
+	placaStr = strtok(NULL,separador);
  	int opcion = atoi(operacion);
+
+ 	char *placa = placaStr;
+
 
 	time_t t1 = argumentosBP->tiempoSegundos;
 	Tiempo tm1 = argumentosBP->tiempoFormato;
