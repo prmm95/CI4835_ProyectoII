@@ -1,7 +1,10 @@
 #
 # Archivo: Makefile
 #
-# Descripción:
+# Descripción: Archivo que permite realizar la compilación de los archivos 
+# 'cliente.c' y 'servidor.c' para crear los ejecutables 'sem_cli' y 'sem_srv' 
+# respectivamente. A su vez, permite eliminar los mismos al ejecutar el 
+# comando 'make clean' en su terminal.
 #
 # Autores:
 #	Samuel Arleo, 10-10969.
@@ -11,8 +14,8 @@
 #
 
 Main:
-	gcc -pthread cliente.c -o sem_cli
-	gcc -pthread servidor.c -lm -o sem_svr
+	gcc -pthread cliente.c lib_socket.c -o sem_cli
+	gcc -pthread servidor.c lib_socket.c -lm -o sem_svr
 
 clean:
 	rm sem_svr
