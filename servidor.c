@@ -175,24 +175,27 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char 
 
 //----------------------------------------------------------------------------//
 
-void eliminarVehiculo(Vehiculo **inicioList, int cod) {
+void eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS) {
 
 	Vehiculo *aux = *inicioList;
 	Vehiculo *anterior = NULL;
+	int encontrado = 0;
+	int tarifaVehiculo = 0;
 
+	// Busca al vehiculo a eliminar y elimina su referencia de la lista:
 	while (aux != NULL) {
 
-		if (aux->codigo == cod) {
+		if (aux->serial == serial) {
 
 			if (anterior == NULL) {
 				*inicioList = aux->siguiente;
-				free(aux);
+				encontrado = 1;
 				break;
 			}
 
 			else {
 				anterior->siguiente = aux->siguiente;
-				free(aux);
+				encontrado = 1;
 				break;
 			}
 		}
@@ -200,6 +203,20 @@ void eliminarVehiculo(Vehiculo **inicioList, int cod) {
 		anterior = aux;
 		aux = aux->siguiente;
 
+	}
+
+	// Con el vehiculo a eliminar, se acualiz
+	if (encontrado) {
+		printf("ENCONTRADO \n");
+
+		aux->Salida = tiempoS;
+		tarifaVehiculo = calcular_costo(*aux);
+		printf("LA TARIFA ES: %d\n",tarifaVehiculo);
+		free(aux);
+	}
+	
+	else {
+		printf("NO ENCONTRADO\n");
 	}
 	
 }
@@ -338,7 +355,7 @@ void *beginProtocol(void *argumentos) {
     switch(opcion) {
 
     	// Entrada:
-    	case 1:
+    	case 0:
 
     		// Verificacion de puestos disponibles:
 			if (*puestosOcupados <= NUM_PUESTOS) {
@@ -360,11 +377,12 @@ void *beginProtocol(void *argumentos) {
 			}
 
 		// Salida:
-    	case 0:
+    	case 1:
 
     		//carro1.Salida.tiempoF = tm2;
  			//carro1.Salida.segundos = t2
     		// eliminar vehiculo:
+    		eliminarVehiculo(inicioList,placa,tiempo1);
     		// escribir Bitacora (salida);
     		//escribirBitacora(argumentosBP->salidas,"s",carro1);
     		break;
