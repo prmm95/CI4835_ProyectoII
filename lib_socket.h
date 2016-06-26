@@ -1,11 +1,7 @@
 /*
  * Archivo: lib_socket.h
  * 
- * Descripción: Código correspondiente a una puerta de estacionamiento del 
- * Centro Comercial "Moriah". Implementa una interfaz que permite a un vehículo
- * entrar o salir de las instalaciones. Se encarga de la comunicación con el 
- * computador central (CC) del sistema; el cual, administra la distribución
- * de puestos del estacionamiento. 
+ * Descripción: Encabezado del archivo 'lib_socket.h'
  *
  * Autores:
  *	 Samuel Arleo, 10-10969.
@@ -18,6 +14,9 @@
 #ifndef FUNCION_SOCKET
 #define FUNCION_SOCKET
 
+//----------------------------------------------------------------------------//
+//                             Tipos estructurados                            //
+//----------------------------------------------------------------------------//
 
 struct Skt {
 	int sockfd;
@@ -27,6 +26,17 @@ struct Skt {
 	int numbytes;
 } skt;
 
+struct Parametros {
+	struct Skt *skt;
+	int *confirmado;
+	char *mensaje;
+};
+
+//----------------------------------------------------------------------------//
+//                                Funciones                                   //
+//----------------------------------------------------------------------------//
+
 void *crearSocket(struct Skt *skt,int puerto, int equipo);
+void *reenviar(void *parametros);
 
 #endif

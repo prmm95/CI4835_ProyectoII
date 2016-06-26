@@ -1,7 +1,8 @@
 /*
  * Archivo: lib_socket.c
  * 
- * Descripción: 
+ * Descripción: Librería que incluye la función de creación de sockets. 
+ * Esta es usada por los archivos 'cliente.c' y 'servidor.c'
  *
  * Autores:
  *	 Samuel Arleo, 10-10969.
@@ -10,6 +11,10 @@
  * Última fecha de modificación: 27/06/2016
  *
 */
+
+//----------------------------------------------------------------------------//
+//                        Directivas de preprocesador                         //
+//----------------------------------------------------------------------------//
 
 #include <arpa/inet.h>  // 
 #include <errno.h>      //
@@ -20,10 +25,13 @@
 #include <string.h>     // 
 #include <time.h>       //
 #include <unistd.h>     //
-#include "lib_socket.h"
+#include "lib_socket.h" //
 
+//----------------------------------------------------------------------------//
+//                          Definición de funciones                           //
+//----------------------------------------------------------------------------//
 
-void *crearSocket(struct Skt *skt,int puerto, int equipo){ // FUNCION DUPLICADA, QUITAR CUANDO HAGAMOS EL HEADER
+void *crearSocket(struct Skt *skt,int puerto, int equipo) { 
 
 	if (equipo == 0) {
 		puerto = puerto + 1;
@@ -41,11 +49,39 @@ void *crearSocket(struct Skt *skt,int puerto, int equipo){ // FUNCION DUPLICADA,
 	bzero(&(skt->my_addr.sin_zero), 8); /* rellena con ceros el resto de la estructura */
 	/* Se le da un nombre al skt (se lo asocia al puerto e IPs) */
 
-	printf("Asignado direccion al skt ....\n");
-	printf("FILE-DESC: %d\n",skt->sockfd);
+	//printf("Asignado direccion al skt ....\n");
+	//printf("FILE-DESC: %d\n",skt->sockfd);
+
 	if (bind(skt->sockfd, (struct sockaddr *)&(skt->my_addr), 
 							 sizeof(struct sockaddr)) == -1) {
 		perror("bind");
 		exit(2);
 	}
 }
+
+//----------------------------------------------------------------------------//
+
+void *reenviar(void *parametros){
+
+	struct Parametros *p = parametros;
+	struct Skt *skt = p->skt;
+	int *confirmado = p->confirmado;
+	printf("ENTRA?%d",*confirmado);
+	// Mientras el servidor no responda con un ACK
+	while (!(*confirmado)){
+		sleep(1);
+		// Si el servidor no ha respondido, vuelve a enviar el mensaje
+		if (!(*confirmado)){
+			if ((skt->numbytes=sendto(skt->sockfd,p->mensaje,strlen(p->mensaje),0,
+				(struct sockaddr *)&(skt->their_addr),sizeof(struct sockaddr))) == -1) {
+				perror("sendto");
+				exit(2);
+			}
+		}
+	}
+	printf("hola\n" );
+}
+
+//----------------------------------------------------------------------------//
+//                        Fin de definición de funciones                      //
+//----------------------------------------------------------------------------//

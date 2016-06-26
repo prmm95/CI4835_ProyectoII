@@ -34,48 +34,6 @@
 #define SERVER_PORT 4321
 #define BUFFER_LEN 1024
 
-struct Parametros
-{
-	struct Skt *skt;
-	int *confirmado;
-	char *mensaje;
-};
-
-
-//----------------------------------------------------------------------------//
-
-// esto es una prueba: 
-
-char* concat(char *s1, char *s2) {
-    char *result = malloc(strlen(s1)+1+strlen(s2)+1);//+1 for the zero-terminator
-    //in real code you would check for errors in malloc here
-    strcpy(result, s1);
-    strcpy(result,"/");
-    strcat(result, s2);
-    return result;
-}
-
-void *reenviar(void *parametros){
-
-	struct Parametros *p = parametros;
-	struct Skt *skt = p->skt;
-	int *confirmado = p->confirmado;
-	printf("ENTRA?%d",*confirmado);
-	// Mientras el servidor no responda con un ACK
-	while (!(*confirmado)){
-		sleep(1);
-		// Si el servidor no ha respondido, vuelve a enviar el mensaje
-		if (!(*confirmado)){
-			if ((skt->numbytes=sendto(skt->sockfd,p->mensaje,strlen(p->mensaje),0,
-				(struct sockaddr *)&(skt->their_addr),sizeof(struct sockaddr))) == -1) {
-				perror("sendto");
-				exit(2);
-			}
-		}
-	}
-	printf("hola\n" );
-}
-
 //----------------------------------------------------------------------------//
 //                       Inicio del código principal                          //
 //----------------------------------------------------------------------------//
