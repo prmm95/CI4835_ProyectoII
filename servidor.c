@@ -338,7 +338,7 @@ int getCliente(Host *clientes,char *dir_origen,Host *h){
 	pthread_mutex_lock(&semaforoListaClientes);
 	Host *aux = clientes;
 	while (aux != NULL){
-		if (strcmp(aux->ip,dir_origen)){
+		if (strcmp(aux->ip,dir_origen) == 0){
 			h = aux;
 			return 1;
 		}
@@ -385,8 +385,8 @@ int sesionAbierta(Host *clientes,char *dir_origen,int num_secuencia,int *confirm
 		agregarCliente(clientes,cliente); // Colocar confirmado en 0
 		return 0; // No habia una sesion abierta
 	}else{
-		if (cliente->num_secuencia == 0){ //Ya ha habido comunicacion con host pero
-			cliente->num_secuencia = num_secuencia;
+		if (cliente->num_secuencia == 0){ //Ya ha habido comunicacion con el mismo cliente
+			cliente->num_secuencia = num_secuencia; // pero no hay una sesion actualmente
 			confirmado = &(cliente->confirmado);
 			return 0;
 		}else{
@@ -436,7 +436,6 @@ void *beginProtocol(void *argumentos) {
 
  	// prints
  	// Se muestra en pantalla el tiempo actual:
- 	printf("HILO\n");
 	printf("Fecha: %02d/%02d/%d \n",tm1.tm_mday,tm1.tm_mon + 1,tm1.tm_year + 1900);
 	printf("Hora: %02d:%02d:%02d \n", tm1.tm_hour, tm1.tm_min, tm1.tm_sec);
 	// printf("HOLA %s\n",argumentosBP->buf);
@@ -450,8 +449,8 @@ void *beginProtocol(void *argumentos) {
 	// printf("El numero de puestos ocupados es -> %d\n",*puestosOcupados);
 	// printf("El codigo del Vehiculo es -> %d\n",*argumentosBP->contadorVehiculos);
 
-
 	// Si el servidor no esta en medio de una comunicacion con el mismo cliente
+	printf("TIPO MENSAJE %d\n",opcion);
 	if (!sesionAbierta(argumentosBP->clientes,argumentosBP->origen,
 									atoi(num_secuencia),confirmado)){
 		// Verificacion de la operación (Entrada o salida):
@@ -459,7 +458,6 @@ void *beginProtocol(void *argumentos) {
 
 	    	// Entrada:
 	    	case 0:
-
 	    		// Verificacion de puestos disponibles:
 				if (*puestosOcupados <= NUM_PUESTOS) {
 					//printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
@@ -533,8 +531,8 @@ void *beginProtocol(void *argumentos) {
 	    		//escribirBitacora(argumentosBP->salidas,"s",carro1);
 	    		break;
 	    	// ACK
-	    	case 2:;
-
+	    	case 2:
+	    		printf("HOLAAAAAAAA OPCION 0");
 	    		Host *h;
 	    		pthread_mutex_lock(&semaforoListaClientes);
 	    		int encontrado = getCliente(argumentosBP->clientes,argumentosBP->origen,h);
@@ -606,7 +604,7 @@ int main(int argc, char *argv[]){
 	 	//printf("MENSAJE\n");
 		//printf("Fecha: %02d/%02d/%d \n",tm1.tm_mday,tm1.tm_mon + 1,tm1.tm_year + 1900);
 		//printf("Hora: %02d:%02d:%02d \n", tm1.tm_hour, tm1.tm_min, tm1.tm_sec);
-		//printf("%HOLA s\n",argumentos->buf);
+		printf("MENSAJE: %s\n",buf);
 		//printf("QUE %s\n",argumentos->entradas);
 		//printf("TAL %s\n",argumentos->salidas);
 

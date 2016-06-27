@@ -97,8 +97,6 @@ int main(int argc, char *argv[]) {
 	char mensaje[30] = ""; // Se puede hacer una func para formar el mensaje
 	strcat(mensaje, opcion);
 	strcat(mensaje,"/");
-	strcat(mensaje,"0"); // Tipo mensaje
-	strcat(mensaje,"/");
 	strcat(mensaje,num_sec);
 	strcat(mensaje,"/");
 	strcat(mensaje, placa);
@@ -131,14 +129,27 @@ int main(int argc, char *argv[]) {
 
 	char buf[BUFFER_LEN];
 	skt.numbytes=recvfrom(skt.sockfd, buf, BUFFER_LEN, 0, (struct sockaddr *)&(skt.their_addr), 
-	 											  (socklen_t *)&(skt.addr_len));
+												  (socklen_t *)&(skt.addr_len));
+
+	confirmado = 1;
+
+	char mensajeACK[30] = ""; // Se puede hacer una func para formar el mensaje
+	strcat(mensaje, "2");
+	strcat(mensaje,"/");
+	strcat(mensaje,num_sec);
+
+	if ((skt.numbytes=sendto(skt.sockfd,mensajeACK,strlen(mensajeACK),0,(struct sockaddr *)&(skt.their_addr),
+	sizeof(struct sockaddr))) == -1) {
+		perror("sendto");
+		exit(2);
+	}
 
 	char *tipoMensaje;
 	char separador[2] = "/";
 
 	tipoMensaje = strtok(buf,separador);
 
-	if ( strcmp(tipoMensaje,"0") == 0) {
+	if (strcmp(tipoMensaje,"0") == 0) {
 		printf("Disculpe, el estacionamiento no tiene puestos disponibles.\n");
 	}
 
@@ -182,7 +193,6 @@ int main(int argc, char *argv[]) {
 		printf("\n---------------\n");
 	}
 
-	// confirmado = 1;
 	/* cierro socket */
 	close(skt.sockfd);
 	pthread_exit(NULL);
