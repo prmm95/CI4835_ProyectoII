@@ -335,6 +335,7 @@ int calcular_costo(Vehiculo vehiculo) {
 // en "h" la direccion del cliente buscado en caso de encontrarlo.
 int getCliente(Host *clientes,char *dir_origen,Host *h){
 
+	pthread_mutex_lock(&semaforoListaClientes);
 	Host *aux = clientes;
 	while (aux != NULL){
 		if (strcmp(aux->ip,dir_origen)){
@@ -345,27 +346,29 @@ int getCliente(Host *clientes,char *dir_origen,Host *h){
 			aux = aux->siguiente;
 		}
 	}
+	pthread_mutex_lock(&semaforoListaClientes);
 	return 0;
 }
 
 void agregarCliente(Host *clientes, Host *h){
 
+	pthread_mutex_lock(&semaforoListaClientes);
 	Host *aux = clientes;
 	while (aux != NULL){
 		aux = aux->siguiente;
 	}
 	aux = h;
+	pthread_mutex_lock(&semaforoListaClientes);
 }
 
-Host *crearCliente(int num_secuencia,char *dir_origen){
+void crearCliente(int num_secuencia,char *dir_origen,Host *cliente){
 
-	Host *cliente = (Host *)malloc(sizeof(Host));
+	cliente = (Host *)malloc(sizeof(Host));
 	cliente->confirmado = 0;
 	cliente->num_secuencia = num_secuencia;
 	cliente->ip = (char *)malloc(strlen(dir_origen));
 	strcpy(cliente->ip,dir_origen);
 	cliente->siguiente = NULL;
-	return cliente;
 
 }
 
@@ -377,7 +380,7 @@ int sesionAbierta(Host *clientes,char *dir_origen,int num_secuencia,int *confirm
 
 	Host *cliente;
 	if (getCliente(clientes,dir_origen,cliente) == 0){
-		cliente = crearCliente(num_secuencia,dir_origen);
+		crearCliente(num_secuencia,dir_origen,cliente);
 		confirmado = &(cliente->confirmado);
 		agregarCliente(clientes,cliente); // Colocar confirmado en 0
 		return 0; // No habia una sesion abierta
