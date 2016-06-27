@@ -138,7 +138,7 @@ void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) 
 	Tiempo fechaB;
 	
 	// No se si este if se puede hacer mas elegante:
-	if (tipoOperacion == "e") {
+	if (strcmp(tipoOperacion,"e") == 0) {
 		fechaB = vehiculo.Entrada.tiempoF;
 	}
 	
@@ -333,37 +333,35 @@ int calcular_costo(Vehiculo vehiculo) {
 
 // Busca un cliente por su direccion IP en la lista de clientes y retorna
 // en "h" la direccion del cliente buscado en caso de encontrarlo.
-int getCliente(Host *clientes,char *dir_origen,Host *h){
+int getCliente(Host *clientes,char *dir_origen,Host **h){
 
 	pthread_mutex_lock(&semaforoListaClientes);
-	Host *aux = clientes;
-	while (aux != NULL){
-		if (strcmp(aux->ip,dir_origen) == 0){
-			h = aux;
+	*h = clientes;
+	while (*h != NULL){
+		if (strcmp((*h)->ip,dir_origen) == 0){
 			return 1;
 		}
 		else{
-			aux = aux->siguiente;
+			*h = (*h)->siguiente;
 		}
 	}
-	pthread_mutex_lock(&semaforoListaClientes);
+	pthread_mutex_unlock(&semaforoListaClientes);
 	return 0;
 }
 
-void agregarCliente(Host *clientes, Host *h){
+void agregarCliente(Host **clientes, Host *h){
 
 	pthread_mutex_lock(&semaforoListaClientes);
-	Host *aux = clientes;
-	while (aux != NULL){
-		aux = aux->siguiente;
+	Host **aux = clientes;
+	while (*aux != NULL){
+		*aux = (*aux)->siguiente;
 	}
-	aux = h;
-	pthread_mutex_lock(&semaforoListaClientes);
+	*aux = h;
+	pthread_mutex_unlock(&semaforoListaClientes);
 }
 
 void crearCliente(int num_secuencia,char *dir_origen,Host *cliente){
 
-	cliente = (Host *)malloc(sizeof(Host));
 	cliente->confirmado = 0;
 	cliente->num_secuencia = num_secuencia;
 	cliente->ip = (char *)malloc(strlen(dir_origen));
@@ -372,24 +370,43 @@ void crearCliente(int num_secuencia,char *dir_origen,Host *cliente){
 
 }
 
+void imprimirClientes(Host *clientes){
+
+	Host *aux = clientes;
+	while (aux!=NULL){
+		printf("-----------------------------\n");
+		printf("confirmado %d\n",aux->confirmado);
+		printf("num_secuencia %d\n",aux->num_secuencia);
+		printf("IP %s\n",aux->ip);
+		printf("-----------------------------\n");
+		aux = aux->siguiente;
+	}
+}
+
 // Determina si el servidor posee una conexion abierta con el cliente indicado
 // Si no existia conexion con el host o no hay sesiones abiertas, agrega al
 // cliente a la lista de hosts 
 
-int sesionAbierta(Host *clientes,char *dir_origen,int num_secuencia,int *confirmado){
+int sesionAbierta(Host **clientes,char *dir_origen,int num_secuencia,int *confirmado){
 
 	Host *cliente;
-	if (getCliente(clientes,dir_origen,cliente) == 0){
+	//printf("getCliente%d\n",getCliente(clientes,dir_origen,cliente));
+	if (getCliente(*clientes,dir_origen,&cliente) == 0){
+		cliente = (Host *)malloc(sizeof(Host));
 		crearCliente(num_secuencia,dir_origen,cliente);
-		confirmado = &(cliente->confirmado);
+		*confirmado = cliente->confirmado;
+		imprimirClientes(cliente);
 		agregarCliente(clientes,cliente); // Colocar confirmado en 0
+		imprimirClientes(*clientes);
 		return 0; // No habia una sesion abierta
-	}else{
+	}
+	else{
 		if (cliente->num_secuencia == 0){ //Ya ha habido comunicacion con el mismo cliente
 			cliente->num_secuencia = num_secuencia; // pero no hay una sesion actualmente
-			confirmado = &(cliente->confirmado);
+			*confirmado = cliente->confirmado;
 			return 0;
-		}else{
+		}
+		else{
 			return 1; // Cambiar num_secuencia a 0 cuando se confirme el mensaje en el case 2 linea 455
 		}
 	}
@@ -436,6 +453,7 @@ void *beginProtocol(void *argumentos) {
 
  	// prints
  	// Se muestra en pantalla el tiempo actual:
+ 	printf("HILO %d\n",opcion);
 	printf("Fecha: %02d/%02d/%d \n",tm1.tm_mday,tm1.tm_mon + 1,tm1.tm_year + 1900);
 	printf("Hora: %02d:%02d:%02d \n", tm1.tm_hour, tm1.tm_min, tm1.tm_sec);
 	// printf("HOLA %s\n",argumentosBP->buf);
@@ -450,14 +468,18 @@ void *beginProtocol(void *argumentos) {
 	// printf("El codigo del Vehiculo es -> %d\n",*argumentosBP->contadorVehiculos);
 
 	// Si el servidor no esta en medio de una comunicacion con el mismo cliente
-	printf("TIPO MENSAJE %d\n",opcion);
-	if (!sesionAbierta(argumentosBP->clientes,argumentosBP->origen,
+	printf("Opcion: %d\n",opcion);
+	if (!sesionAbierta(&(argumentosBP->clientes),argumentosBP->origen,
 									atoi(num_secuencia),confirmado)){
 		// Verificacion de la operación (Entrada o salida):
+
+		printf("CONFIRMADO AFUERA%d\n",*confirmado);
+		imprimirClientes(argumentosBP->clientes);
 	    switch(opcion) {
 
 	    	// Entrada:
 	    	case 0:
+	    		printf("OCUPADOS %d\n",*puestosOcupados);
 	    		// Verificacion de puestos disponibles:
 				if (*puestosOcupados <= NUM_PUESTOS) {
 					//printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
@@ -474,7 +496,7 @@ void *beginProtocol(void *argumentos) {
 					// Se escribe la entrada en la Bitacora:
 					imprimirLista(inicioList);
 
-					char id[10],dia[10],mes[10],anio[10],hora[10],minuto[10],segundo[10];
+					char id[10],dia[10],mes[10],anio[20],hora[10],minuto[10],segundo[10];
 					sprintf(id,"%d",codigoVehiculo);
 					sprintf(dia,"%d",tm1.tm_mday);
 					sprintf(mes,"%d",tm1.tm_mon + 1);
@@ -486,7 +508,8 @@ void *beginProtocol(void *argumentos) {
 					struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
 					p->skt = skt;
 					p->confirmado = confirmado;
-					char respuesta[60];
+					printf("CONFIRMADO %d\n",*confirmado);
+					char respuesta[60] = "";
 					strcat(respuesta, "1"); // Esto es muy bestia, lo se. Luego lo acomodo
 					strcat(respuesta,"/");
 					strcat(respuesta,num_secuencia);
@@ -512,6 +535,7 @@ void *beginProtocol(void *argumentos) {
 					struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
 					p->skt = skt;
 					p->confirmado = confirmado;
+					printf("CONFIRMADO %d\n",*confirmado);
 					char respuesta[30];
 					strcat(respuesta, "0");
 					strcat(respuesta,"/");
@@ -531,16 +555,16 @@ void *beginProtocol(void *argumentos) {
 	    		//escribirBitacora(argumentosBP->salidas,"s",carro1);
 	    		break;
 	    	// ACK
-	    	case 2:
-	    		printf("HOLAAAAAAAA OPCION 0");
+	    	case 2:;
+
 	    		Host *h;
 	    		pthread_mutex_lock(&semaforoListaClientes);
-	    		int encontrado = getCliente(argumentosBP->clientes,argumentosBP->origen,h);
+	    		int encontrado = getCliente(argumentosBP->clientes,argumentosBP->origen,&h);
 	    		if (encontrado){
 	    			h->confirmado = 0;
 	    			h->num_secuencia = 0;
 	    		}
-	    		pthread_mutex_lock(&semaforoListaClientes);
+	    		pthread_mutex_unlock(&semaforoListaClientes);
 	    		break;
 
 	    	default:
@@ -591,7 +615,7 @@ int main(int argc, char *argv[]){
 	int rc;
 	skt.addr_len = sizeof(struct sockaddr);
 	printf("Esperando datos ....\n");
-	if ((skt.numbytes=recvfrom(skt.sockfd, buf, BUFFER_LEN, 0, 
+	while ((skt.numbytes=recvfrom(skt.sockfd, buf, BUFFER_LEN, 0, 
 						(struct sockaddr *)&(skt.their_addr), 
 						(socklen_t *)&(skt.addr_len))) != -1) {
 		buf[skt.numbytes] = '\0';
