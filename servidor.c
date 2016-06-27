@@ -561,8 +561,8 @@ void *beginProtocol(void *argumentos) {
 	    		pthread_mutex_lock(&semaforoListaClientes);
 	    		int encontrado = getCliente(argumentosBP->clientes,argumentosBP->origen,&h);
 	    		if (encontrado){
-	    			h->confirmado = 0;
-	    			h->num_secuencia = 0;
+	    			h->confirmado = 1; // Para que el ciclo de reenviar pare. Ver si la direccion de confirmado es la misma de la que
+	    			h->num_secuencia = 0; // depende el ciclo
 	    		}
 	    		pthread_mutex_unlock(&semaforoListaClientes);
 	    		break;
