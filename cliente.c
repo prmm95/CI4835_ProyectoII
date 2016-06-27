@@ -133,6 +133,11 @@ int main(int argc, char *argv[]) {
 	skt.numbytes=recvfrom(skt.sockfd, buf, BUFFER_LEN, 0, (struct sockaddr *)&(skt.their_addr), 
 	 											  (socklen_t *)&(skt.addr_len));
 
+	
+
+
+
+
 	char *tipoMensaje;
 	char separador[2] = "/";
 
