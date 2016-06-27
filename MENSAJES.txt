@@ -51,14 +51,13 @@ SERVIDOR --> CLIENTE:
 ---------------------------------------------------------------------------
 
 Denegando la entrada
-
 ---------------------------------------------------------------------------
 |		0		|		1523		|		VACIO						  |
 ---------------------------------------------------------------------------
 
-Mensaje de aprobacion de entrada de un vehiculo con placa AAAHC51 a las 00:15:25 del dia 05/10/2016
+Mensaje de aprobacion de entrada de un vehiculo con ID 12 a las 00:15:25 del dia 05/10/2016
 ---------------------------------------------------------------------------
-|		1		|		1523		|0510201600152512547				  |
+|		1		|		1523		|	12	|	0510201600152512547		  |
 ---------------------------------------------------------------------------
 
 Mensaje de salida de vehiculo con un monto de 150 (minimo 00000, maximo 9999 -casi 10 mil-)
@@ -115,3 +114,6 @@ de mensaje 2 (mixto).
 		* Si el campo es 0 (cliente solicita entrar al estacionamiento)
 			* Si hay puestos disponibles:
 				* Se arma un mensaje 
+
+
+
