@@ -590,7 +590,7 @@ int main(int argc, char *argv[]){
 	int rc;
 	skt.addr_len = sizeof(struct sockaddr);
 	printf("Esperando datos ....\n");
-	while ((skt.numbytes=recvfrom(skt.sockfd, buf, BUFFER_LEN, 0, 
+	if ((skt.numbytes=recvfrom(skt.sockfd, buf, BUFFER_LEN, 0, 
 						(struct sockaddr *)&(skt.their_addr), 
 						(socklen_t *)&(skt.addr_len))) != -1) {
 		buf[skt.numbytes] = '\0';
@@ -633,7 +633,14 @@ int main(int argc, char *argv[]){
 			num_hilos = 0;
 		}
 	}
+
 	/* cerramos descriptor del skt */
+
+	if ((skt.numbytes=sendto(skt.sockfd,"2/1000",sizeof("2/1000"),0,(struct sockaddr *)&(skt.their_addr),
+	sizeof(struct sockaddr))) == -1) {
+		perror("sendto");
+		exit(2);
+	}
 
 	imprimirLista(&listaVehiculos);
 
