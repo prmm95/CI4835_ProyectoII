@@ -80,12 +80,14 @@ typedef struct argHilo {
 
 void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) {
 	/*
-	 * Descripción: 
-	 *
-	 * Variables de entrada:
-	 *
-	 * Variables de salida:
-	 *
+	 * Descripción: Permite agregar los datos del vehiculo, fecha, hora y tipo de
+		operacion para mantener un registro de la entrada y salida (en archivos 
+		separados).
+	 * Variables de entrada: 
+	 *	- Ruta al archivo para el registro.
+	 *	- tipoOperacion: Salida o entrada
+	 *	- vehiculo: Estructura con datos del vehiculo que seran almacenados en la
+	 * 	bitacora.
 	*/
 
 	// Inicializción de variables:
@@ -116,7 +118,21 @@ void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) 
 //----------------------------------------------------------------------------//
 
 void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char *bitacora,int *id) {
-			
+	/*
+	 * Descripción: Agrega un vehiculo nuevo a la estructura "vehiculo" que almacena 
+		los vehiculos
+	 *
+	 * Variables de entrada: 
+	 *	- lisVehic: Apuntador al puntero que referencia a la lista de vehiculos
+	 *	mantenida por el servidor.
+	 *	- Ent: Datos del momento en que entra el vehiculo
+	 *	- cod: ID del vehiculo.
+	 *	- ser: Serial del vehiculo
+	 *	- bitacora: Ruta a la bitacora
+	 *	- id: Variable global que sirve para asignar un numero entero a cada vehiculo
+	 *
+	*/
+
 	// Se crea el nuevo vehiculo que se agregara a la lista enlazada:
 	Vehiculo *nuevoVehiculo = (Vehiculo *) malloc(sizeof(Vehiculo));
 	char *serialInd = (char *) malloc(strlen(ser)); //-->CAMBIO Aqui no es strlen en vez de sizeof?<--
@@ -158,6 +174,18 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char 
 //----------------------------------------------------------------------------//
 
 int buscarVehiculo(Vehiculo **inicioList, char *serial) {
+	/*
+	 * Descripción: Permite buscar un vehiculo en la lista mantenida por le servidor.
+	 *
+	 * Variables de entrada:
+	 *	- inicioList: Apuntador al puntero que referencia a la lista de vehiculos
+	 *	mantenida por el servidor.
+	 *	- serial: Serial del vehiculo a buscar.
+	 *
+	 * Valor de salida: Retorna 1 si fue encontrado el vehiculo en la lista o 0 en
+	 *		caso contrario
+	 *
+	*/
 
 	Vehiculo *aux = *inicioList;
 	Vehiculo *anterior = NULL;
@@ -195,6 +223,22 @@ int buscarVehiculo(Vehiculo **inicioList, char *serial) {
 //----------------------------------------------------------------------------//
 
 int eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char *bitacora, int *puestosOcupados) {
+	/*
+	 * Descripción: Elimina un elemento de la estructura vehiculo (por ejemplo, cuando 
+	 sale del estacionamiento)
+	 *
+	 * Variables de entrada: 
+	 *	- inicioList: Apuntador al puntero que referencia a la lista de vehiculos
+	 *	mantenida por el servidor.
+	 *	- serial: Serial del carro a eliminar
+	 *	- tiempoS: Informacion del momento de salida del vehiculo (fecha y hora).
+	 *	- bitacora: String con la ruta a la bitacora de salida.
+	 *	- puesto: Contador global del numero de puestos ocupados (es disminuido en 1) 
+	 *
+	 * Valor de salida: Retorna 1 si fue encontrado el vehiculo en la lista o 0 en
+	 *		caso contrario
+	 *
+	*/
 
 	Vehiculo *aux = *inicioList;
 	Vehiculo *anterior = NULL;
@@ -365,6 +409,7 @@ int main(int argc, char *argv[]){
 		time_t t2 = t1 + 7201;
 		Tiempo tm2 = *localtime(&t2);
 
+		// Prueba
 		Vehiculo **inicioList = argumentosBP->listaVehiculos;
 
 		// Si el servidor no esta en medio de una comunicacion con el mismo cliente
