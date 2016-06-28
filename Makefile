@@ -14,8 +14,8 @@
 #
 
 Main:
-	gcc -pthread cliente.c lib_socket.c -o sem_cli
-	gcc -pthread servidor.c lib_socket.c -lm -o sem_svr
+	gcc cliente.c lib_socket.c -o sem_cli
+	gcc servidor.c lib_socket.c -lm -o sem_svr
 
 clean:
 	rm sem_svr
