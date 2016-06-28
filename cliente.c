@@ -71,18 +71,6 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	/*printf("PLACA: %s\n", placa);
-	printf("MODULO: %s\n", modulo);
-	printf("OPCION: %s\n", opcion);
-	printf("PUERTO: %ld\n", puerto);*/
-
-	// NUMERO RANDOM PARA EL NUM DE SECUENCIA
-
-	srand(time(NULL)); // No hace falta (en el servidor si)
-	int random = (rand() % 999) + 1000; /* Se le suma 1000 para que sea de 4 digitos */
-	char num_sec[8] = "";
-	sprintf(num_sec,"%d",random);
-
 	// Creando el socket
 	struct Skt skt;
 	crearSocket(&skt,puerto,0);
@@ -96,8 +84,6 @@ int main(int argc, char *argv[]) {
 
 	char mensaje[30] = ""; // Se puede hacer una func para formar el mensaje
 	strcat(mensaje, opcion);
-	strcat(mensaje,"/");
-	strcat(mensaje,num_sec);
 	strcat(mensaje,"/");
 	strcat(mensaje, placa);
 	printf("el string es: %s \n",mensaje);
@@ -119,38 +105,15 @@ int main(int argc, char *argv[]) {
 		perror("sendto");
 		exit(2);
 	}
-	// // CREANDO HILO PARA CONTAR TIEMPO DE ESPERA DEL MENSAJE ACK
-	// pthread_t *thread;
-	// int rc = pthread_create(&thread, NULL, reenviar, &p);
-	// if (rc){
-	// 	printf("ERROR; return code from pthread_create() is %d\n", rc);
-	// 	exit(-1);
-	// }
 
 	char buf[BUFFER_LEN];
+	char *tipoMensaje;
+	char separador[2] = "/";
+
 	skt.numbytes=recvfrom(skt.sockfd, buf, BUFFER_LEN, 0, (struct sockaddr *)&(skt.their_addr), 
 												  (socklen_t *)&(skt.addr_len));
 
-	confirmado = 1;
-
-	char mensajeACK[30] = ""; // Se puede hacer una func para formar el mensaje
-	strcat(mensaje, "2");
-	strcat(mensaje,"/");
-	strcat(mensaje,num_sec);
-
-	if ((skt.numbytes=sendto(skt.sockfd,mensajeACK,strlen(mensajeACK),0,(struct sockaddr *)&(skt.their_addr),
-	sizeof(struct sockaddr))) == -1) {
-		perror("sendto");
-		exit(2);
-	}
-
-	
-
-
-
-
-	char *tipoMensaje;
-	char separador[2] = "/";
+	printf("LO QUE RECIBI FUE: %s\n",buf);
 
 	tipoMensaje = strtok(buf,separador);
 

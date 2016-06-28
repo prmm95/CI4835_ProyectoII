@@ -346,7 +346,7 @@ int getCliente(Host *clientes,char *dir_origen,Host *h){
 			aux = aux->siguiente;
 		}
 	}
-	pthread_mutex_lock(&semaforoListaClientes);
+	pthread_mutex_unlock(&semaforoListaClientes);
 	return 0;
 }
 
@@ -358,7 +358,7 @@ void agregarCliente(Host *clientes, Host *h){
 		aux = aux->siguiente;
 	}
 	aux = h;
-	pthread_mutex_lock(&semaforoListaClientes);
+	pthread_mutex_unlock(&semaforoListaClientes);
 }
 
 void crearCliente(int num_secuencia,char *dir_origen,Host *cliente){
@@ -396,164 +396,6 @@ int sesionAbierta(Host *clientes,char *dir_origen,int num_secuencia,int *confirm
 }
 
 //----------------------------------------------------------------------------//
-
-void *beginProtocol(void *argumentos) {
-
-	// Inicializacion de variables:
-	ArgumentoHilo *argumentosBP = argumentos;
-	const char separador[2] = "/";
-	struct Skt *skt = argumentosBP->skt;
-	char *operacion;
-	char *tipoMensaje;
-	char *num_secuencia;
-	char *placa;
-	int *confirmado;
-	int  *puestosOcupados = argumentosBP->puestosOcupados;
-	int  *contadorVehiculos = argumentosBP->contadorVehiculos;
-	operacion = strtok(argumentosBP->buf,separador);
-	//tipoMensaje = strtok(NULL,separador); Este campo se elimino
-	num_secuencia = strtok(NULL,separador);
- 	int opcion = atoi(operacion);
-
- 	//char *placa = placaStr;
-
-
-	time_t t1 = argumentosBP->tiempoSegundos;
-	Tiempo tm1 = argumentosBP->tiempoFormato;
-
-	TiempoV tiempo1;
-	tiempo1.tiempoF = tm1;
-	tiempo1.segundos = t1;
-
-
-	time_t t2 = t1 + 7201;
-	Tiempo tm2 = *localtime(&t2);
-
-	//armar tiempo 1
-	// Prueba
-	Vehiculo **inicioList = argumentosBP->listaVehiculos;
-
-
- 	// prints
- 	// Se muestra en pantalla el tiempo actual:
-	printf("Fecha: %02d/%02d/%d \n",tm1.tm_mday,tm1.tm_mon + 1,tm1.tm_year + 1900);
-	printf("Hora: %02d:%02d:%02d \n", tm1.tm_hour, tm1.tm_min, tm1.tm_sec);
-	// printf("HOLA %s\n",argumentosBP->buf);
-	// printf("QUE %s\n",argumentosBP->entradas);
-	// printf("TAL %s\n",argumentosBP->salidas);
-	// printf("el paquete contiene: %s\n", argumentosBP->buf);
-	// printf("La operacion es -> %s\n",operacion);
-	// printf("El tipo de mensaje es -> %s\n",tipoMensaje);
-	// printf("El numero de secuencia es es -> %s\n",numeroSecuencia);
-	//printf("La placa es -> %s\n",placa);
-	// printf("El numero de puestos ocupados es -> %d\n",*puestosOcupados);
-	// printf("El codigo del Vehiculo es -> %d\n",*argumentosBP->contadorVehiculos);
-
-	// Si el servidor no esta en medio de una comunicacion con el mismo cliente
-	printf("TIPO MENSAJE %d\n",opcion);
-	if (!sesionAbierta(argumentosBP->clientes,argumentosBP->origen,
-									atoi(num_secuencia),confirmado)){
-		// Verificacion de la operación (Entrada o salida):
-	    switch(opcion) {
-
-	    	// Entrada:
-	    	case 0:
-	    		// Verificacion de puestos disponibles:
-				if (*puestosOcupados <= NUM_PUESTOS) {
-					//printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
-					placa = strtok(NULL,separador);
-					pthread_mutex_lock(&semaforoPuestosOcupados);
-					*puestosOcupados = *puestosOcupados + 1;
-					pthread_mutex_unlock(&semaforoPuestosOcupados);
-
-					int codigoVehiculo;
-
-					// Se agrega el Vehiculo a la estructura:
-					agregarVehiculo(inicioList,tiempo1,contadorVehiculos,placa,
-									argumentosBP->entradas,&codigoVehiculo);
-					// Se escribe la entrada en la Bitacora:
-					imprimirLista(inicioList);
-
-					char id[10],dia[10],mes[10],anio[10],hora[10],minuto[10],segundo[10];
-					sprintf(id,"%d",codigoVehiculo);
-					sprintf(dia,"%d",tm1.tm_mday);
-					sprintf(mes,"%d",tm1.tm_mon + 1);
-					sprintf(anio,"%d",tm1.tm_year + 1900);
-					sprintf(hora,"%d",tm1.tm_hour);
-					sprintf(minuto,"%d",tm1.tm_min);
-					sprintf(segundo,"%d",tm1.tm_sec);
-
-					struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
-					p->skt = skt;
-					p->confirmado = confirmado;
-					char respuesta[60];
-					strcat(respuesta, "1"); // Esto es muy bestia, lo se. Luego lo acomodo
-					strcat(respuesta,"/");
-					strcat(respuesta,num_secuencia);
-					strcat(respuesta,"/");
-					strcat(respuesta,id);
-					strcat(respuesta,"/");
-					strcat(respuesta,dia);
-					strcat(respuesta,"/");
-					strcat(respuesta,mes);
-					strcat(respuesta,"/");
-					strcat(respuesta,anio);
-					strcat(respuesta,"/");
-					strcat(respuesta,hora);
-					strcat(respuesta,"/");
-					strcat(respuesta,minuto);
-					strcat(respuesta,"/");
-					strcat(respuesta,segundo);
-					p->mensaje = respuesta;
-					reenviar(p);
-				}
-
-				else {
-					struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
-					p->skt = skt;
-					p->confirmado = confirmado;
-					char respuesta[30];
-					strcat(respuesta, "0");
-					strcat(respuesta,"/");
-					strcat(respuesta,num_secuencia);
-					p->mensaje = respuesta;
-					reenviar(p);
-				}
-				break;
-			// Salida:
-	    	case 1:
-	    		//carro1.Salida.tiempoF = tm2;
-	 			//carro1.Salida.segundos = t2
-	    		// eliminar vehiculo:
-	    		placa = strtok(NULL,separador);
-	    		eliminarVehiculo(inicioList,placa,tiempo1,argumentosBP->salidas,puestosOcupados);
-	    		// escribir Bitacora (salida);
-	    		//escribirBitacora(argumentosBP->salidas,"s",carro1);
-	    		break;
-	    	// ACK
-	    	case 2:
-	    		printf("HOLAAAAAAAA OPCION 0");
-	    		Host *h;
-	    		pthread_mutex_lock(&semaforoListaClientes);
-	    		int encontrado = getCliente(argumentosBP->clientes,argumentosBP->origen,h);
-	    		if (encontrado){
-	    			h->confirmado = 0;
-	    			h->num_secuencia = 0;
-	    		}
-	    		pthread_mutex_lock(&semaforoListaClientes);
-	    		break;
-
-	    	default:
-	    		perror("Operación incorrecta\n");
-	    		break;  
-	    }
-	}
-    printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
-    free(argumentos); // Ver si hace falta
-	
-}
-
-//----------------------------------------------------------------------------//
 //                       Inicio del código principal                          //
 //----------------------------------------------------------------------------//
 
@@ -563,6 +405,7 @@ int main(int argc, char *argv[]){
 	int puestosOcupados = 0;
  	int contadorVehiculos = 0; // Global
 	int i;
+	char respuesta[60];
 	Vehiculo *listaVehiculos = NULL;
 	Host *listaHosts = NULL;
 
@@ -591,7 +434,10 @@ int main(int argc, char *argv[]){
 	int rc;
 	skt.addr_len = sizeof(struct sockaddr);
 	printf("Esperando datos ....\n");
-	if ((skt.numbytes=recvfrom(skt.sockfd, buf, BUFFER_LEN, 0, 
+
+	while (1) {
+
+		if ((skt.numbytes=recvfrom(skt.sockfd, buf, BUFFER_LEN, 0, 
 						(struct sockaddr *)&(skt.their_addr), 
 						(socklen_t *)&(skt.addr_len))) != -1) {
 		buf[skt.numbytes] = '\0';
@@ -623,29 +469,171 @@ int main(int argc, char *argv[]){
 		strcpy(argumentos->origen,inet_ntoa(skt.their_addr.sin_addr));
 		argumentos->skt = &skt;
 
-		rc = pthread_create(&threads[num_hilos], NULL, beginProtocol,argumentos);
+		// Inicializacion de variables:
+		ArgumentoHilo *argumentosBP = argumentos;
+		const char separador[2] = "/";
+		struct Skt *skt = argumentosBP->skt;
+		char *operacion;
+		char *tipoMensaje;
+		char *num_secuencia;
+		char *placa;
+		int *confirmado;
+		int  *puestosOcupados = argumentosBP->puestosOcupados;
+		int  *contadorVehiculos = argumentosBP->contadorVehiculos;
+		operacion = strtok(argumentosBP->buf,separador);
+		//tipoMensaje = strtok(NULL,separador); Este campo se elimino
+		//num_secuencia = strtok(NULL,separador);
+		int opcion = atoi(operacion);
 
-		if (rc){
-			printf("ERROR; return code from pthread_create() is %d\n", rc);
-			exit(-1);
+			//char *placa = placaStr;
+
+
+		//time_t t1 = argumentosBP->tiempoSegundos;
+		//Tiempo tm1 = argumentosBP->tiempoFormato;
+
+		TiempoV tiempo1;
+		tiempo1.tiempoF = tm1;
+		tiempo1.segundos = t1;
+
+
+		time_t t2 = t1 + 7201;
+		Tiempo tm2 = *localtime(&t2);
+
+		//armar tiempo 1
+		// Prueba
+		Vehiculo **inicioList = argumentosBP->listaVehiculos;
+
+
+		// prints
+		// Se muestra en pantalla el tiempo actual:
+		printf("Fecha: %02d/%02d/%d \n",tm1.tm_mday,tm1.tm_mon + 1,tm1.tm_year + 1900);
+		printf("Hora: %02d:%02d:%02d \n", tm1.tm_hour, tm1.tm_min, tm1.tm_sec);
+		// printf("HOLA %s\n",argumentosBP->buf);
+		// printf("QUE %s\n",argumentosBP->entradas);
+		// printf("TAL %s\n",argumentosBP->salidas);
+		// printf("el paquete contiene: %s\n", argumentosBP->buf);
+		// printf("La operacion es -> %s\n",operacion);
+		// printf("El tipo de mensaje es -> %s\n",tipoMensaje);
+		// printf("El numero de secuencia es es -> %s\n",numeroSecuencia);
+		//printf("La placa es -> %s\n",placa);
+		// printf("El numero de puestos ocupados es -> %d\n",*puestosOcupados);
+		// printf("El codigo del Vehiculo es -> %d\n",*argumentosBP->contadorVehiculos);
+
+
+		// Si el servidor no esta en medio de una comunicacion con el mismo cliente
+		printf("TIPO MENSAJE %d\n",opcion);
+		if (!sesionAbierta(argumentosBP->clientes,argumentosBP->origen,
+										atoi(num_secuencia),confirmado)){
+			// Verificacion de la operación (Entrada o salida):
+		    switch(opcion) {
+
+		    	// Entrada:
+		    	case 0:
+
+		    		// Verificacion de puestos disponibles:
+					if (*puestosOcupados <= NUM_PUESTOS) {
+						//printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
+						placa = strtok(NULL,separador);
+						pthread_mutex_lock(&semaforoPuestosOcupados);
+						*puestosOcupados = *puestosOcupados + 1;
+						pthread_mutex_unlock(&semaforoPuestosOcupados);
+
+						int codigoVehiculo;
+
+						// Se agrega el Vehiculo a la estructura:
+						agregarVehiculo(inicioList,tiempo1,contadorVehiculos,placa,
+										argumentosBP->entradas,&codigoVehiculo);
+						// Se escribe la entrada en la Bitacora:
+						imprimirLista(inicioList);
+
+						char id[10],dia[10],mes[10],anio[10],hora[10],minuto[10],segundo[10];
+						sprintf(id,"%d",codigoVehiculo);
+						sprintf(dia,"%d",tm1.tm_mday);
+						sprintf(mes,"%d",tm1.tm_mon + 1);
+						sprintf(anio,"%d",tm1.tm_year + 1900);
+						sprintf(hora,"%d",tm1.tm_hour);
+						sprintf(minuto,"%d",tm1.tm_min);
+						sprintf(segundo,"%d",tm1.tm_sec);
+
+						struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
+						p->skt = skt;
+						p->confirmado = confirmado;
+
+						memset(respuesta,0,strlen(respuesta));
+
+						char aceptado[2] = "1";
+						
+						strcat(respuesta,aceptado); // Esto es muy bestia, lo se. Luego lo acomodo
+						strcat(respuesta,"/");
+						strcat(respuesta,dia);
+						strcat(respuesta,"/");
+						strcat(respuesta,mes);
+						strcat(respuesta,"/");
+						strcat(respuesta,anio);
+						strcat(respuesta,"/");
+						strcat(respuesta,hora);
+						strcat(respuesta,"/");
+						strcat(respuesta,minuto);
+						strcat(respuesta,"/");
+						strcat(respuesta,segundo);
+						strcat(respuesta,"/");
+						strcat(respuesta,"ab1234");
+						p->mensaje = respuesta;
+						//reenviar(p);
+					}
+
+					else {
+						struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
+						p->skt = skt;
+						p->confirmado = confirmado;
+						memset(respuesta,0,strlen(respuesta));
+						strcat(respuesta, "0");
+						strcat(respuesta,"/");
+						strcat(respuesta,num_secuencia);
+						p->mensaje = respuesta;
+						//reenviar(p);
+					}
+					break;
+				// Salida:
+		    	case 1:
+		    		//carro1.Salida.tiempoF = tm2;
+		 			//carro1.Salida.segundos = t2
+		    		// eliminar vehiculo:
+		    		placa = strtok(NULL,separador);
+		    		eliminarVehiculo(inicioList,placa,tiempo1,argumentosBP->salidas,puestosOcupados);
+
+		    		memset(respuesta,0,strlen(respuesta));
+					strcat(respuesta, "2");
+					strcat(respuesta,"/");
+					strcat(respuesta,"2050");
+
+		    		// escribir Bitacora (salida);
+		    		//escribirBitacora(argumentosBP->salidas,"s",carro1);
+		    		break;
+		    		
+		    	default:
+		    		perror("Operación incorrecta\n");
+		    		break;  
+		    }
 		}
-		num_hilos = num_hilos + 1;
-		if (num_hilos == 2){
-			num_hilos = 0;
+		printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
+		free(argumentos); // Ver si hace falta
+
 		}
-	}
 
-	/* cerramos descriptor del skt */
+		/* cerramos descriptor del skt */
 
-	if ((skt.numbytes=sendto(skt.sockfd,"2/1000",sizeof("2/1000"),0,(struct sockaddr *)&(skt.their_addr),
-	sizeof(struct sockaddr))) == -1) {
-		perror("sendto");
-		exit(2);
+		if ((skt.numbytes=sendto(skt.sockfd,respuesta,sizeof(respuesta),0,(struct sockaddr *)&(skt.their_addr),
+		sizeof(struct sockaddr))) == -1) {
+			perror("sendto");
+				exit(2);
+		}
+
 	}
 
 	imprimirLista(&listaVehiculos);
 
-	close(skt.sockfd);
+	//close(skt.sockfd);
 	pthread_exit(NULL);
 	exit (0);
 }

@@ -62,23 +62,22 @@ void *crearSocket(struct Skt *skt,int puerto, int equipo) {
 //----------------------------------------------------------------------------//
 
 void *reenviar(void *parametros){
-
 	struct Parametros *p = parametros;
 	struct Skt *skt = p->skt;
 	int *confirmado = p->confirmado;
-	printf("ENTRA?%d",*confirmado);
+	//printf("ENTRA? %d ",*confirmado);
 	// Mientras el servidor no responda con un ACK
-	while (!(*confirmado)){
+	//while (!(*confirmado)){
 		sleep(1);
 		// Si el servidor no ha respondido, vuelve a enviar el mensaje
-		if (!(*confirmado)){
+	//	if (!(*confirmado)){
 			if ((skt->numbytes=sendto(skt->sockfd,p->mensaje,strlen(p->mensaje),0,
 				(struct sockaddr *)&(skt->their_addr),sizeof(struct sockaddr))) == -1) {
 				perror("sendto");
 				exit(2);
 			}
-		}
-	}
+	//	}
+	//}
 	printf("hola\n" );
 }
 
