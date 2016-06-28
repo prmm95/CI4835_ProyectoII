@@ -11,7 +11,8 @@
 # Última modificación: 27/06/2016
 #
 
-Archivos:
+
+ARCHIVOS:
 
 	* Makefile: Permite realizar la compilacion del programa utilizando el comando "make".
 
@@ -39,9 +40,11 @@ Archivos:
 	* lib_socket.c: Contiene funciones y estructuras que el codigo del cliente y el servidor 
 		tienen en comun:
 
-		-crearSocket(): Crea las un socket UDP.
+		-crearSocket(): Crea un socket UDP.
 
-Funcionamiento:
+
+
+FUNCIONAMIENTO:
 
 	Al ejecutar el comando sem_svr -l 4321 -i ./entrada.txt -o ./salida.txt, se ejecuta el
 codigo en servidor.c, el cual realiza las acciones siguientes:
@@ -64,7 +67,9 @@ codigo en cliente.c, el cual realiza las acciones siguientes:
 	al servidor solicitando un servicio.
 	- Se coloca a la espera de una respuesta.
 
-Mensajes:
+
+
+MENSAJES:
 
 CLIENTE --> SERVIDOR:
 
@@ -99,7 +104,6 @@ Salida
 |	1	|1523															  |
 ---------------------------------------------------------------------------
 
-
 SERVIDOR --> CLIENTE:
 
 * Permitiendo el paso del cliente. DATOS: Aprobado (1), Hora, fecha y codigo.
@@ -131,7 +135,8 @@ no presente en el estacionamiento.
 ---------------------------------------------------------------------------
 
 
-Ejecucion del programa:
+
+EJECUCION DEL PROGRAMA:
 
 	Cliente: sem_cli -d IP|DN -p puerto -c [se] -i serial
 
@@ -148,7 +153,8 @@ Ejecucion del programa:
 		* -o bitacora_salida.txt:  Ruta al archivo donde almacenar el registro de salida
 	
 
-Condiciones particulares:
+
+CONDICIONES PARTICULARES:
 
 	- El tamano de las rutas bitacora_entrada.txt y bitacora_salida.txt no debe contener 
 mas de 200 caracteres.
