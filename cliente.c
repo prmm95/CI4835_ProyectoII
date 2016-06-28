@@ -31,7 +31,6 @@
 //                          Definición de constantes                          //
 //----------------------------------------------------------------------------//
 
-#define SERVER_PORT 4321
 #define BUFFER_LEN 1024
 
 //----------------------------------------------------------------------------//
@@ -133,14 +132,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (intentos >= 3) {
-
 		printf("Se ha superado numero de intentos para comunicarse\n");
 		printf("con el Computador Central (CC)\n");
-
 	} 
 
 	else {
-
 
 		printf("LO QUE RECIBI FUE: %s\n",buf);
 
@@ -188,6 +184,10 @@ int main(int argc, char *argv[]) {
 			printf("SALIDA: \n");
 			printf("    - Precio: %s Bs.",monto);
 			printf("\n---------------\n");
+		}
+
+		else if (strcmp(tipoMensaje,"3") == 0) {
+			printf("El vehiculo que desea ingresar ya se encuentra en el estacionamiento.\n");
 		}
 
 	}

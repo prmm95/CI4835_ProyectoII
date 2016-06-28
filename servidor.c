@@ -39,28 +39,6 @@
 #define BUFFER_LEN 1024
 
 //----------------------------------------------------------------------------//
-//                      Definición de variables globales                      //
-//----------------------------------------------------------------------------//
-
-// Descripción:
-pthread_mutex_t semaforoListaVehiculos = PTHREAD_MUTEX_INITIALIZER;
-
-// Descripción:
-pthread_mutex_t semaforoListaSecuencias = PTHREAD_MUTEX_INITIALIZER;
-
-// Descripción:
-pthread_mutex_t semaforoBitacora = PTHREAD_MUTEX_INITIALIZER;
-
-// Descripción:
-pthread_mutex_t semaforoPuestosOcupados = PTHREAD_MUTEX_INITIALIZER;
-
-// Descripción:
-pthread_mutex_t semaforoCodigoVehiculo = PTHREAD_MUTEX_INITIALIZER;
-
-// Descripción:
-pthread_mutex_t semaforoListaClientes = PTHREAD_MUTEX_INITIALIZER;
-
-//----------------------------------------------------------------------------//
 //                      Definición del tipos estructurados                    //
 //----------------------------------------------------------------------------//
 
@@ -110,10 +88,6 @@ typedef struct argHilo {
 	struct Skt *skt;
 } ArgumentoHilo;
 
-//----------------------------------------------------------------------------//
-
-// lista enlazada para los mensajes
-
 
 //----------------------------------------------------------------------------//
 //                          Definición de funciones                           //
@@ -146,7 +120,6 @@ void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) 
 		fechaB = vehiculo.Salida.tiempoF;
 	}
 	
-	pthread_mutex_lock(&semaforoBitacora);
 	bitacora = fopen(rutaBitacora,"a"); // no se si pasar esto como parametro para no abrir y cerrar el df cada vez
 	fprintf(bitacora,"-------------------\n");
 	fprintf(bitacora,"Fecha: %d/%02d/%d \n",fechaB.tm_mday,fechaB.tm_mon + 1,fechaB.tm_year + 1900);
@@ -155,7 +128,6 @@ void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) 
 	fprintf(bitacora,"Código: %d",vehiculo.codigo);
 	fprintf(bitacora,"\n-------------------\n");	
 	fclose(bitacora);
-	pthread_mutex_unlock(&semaforoBitacora);
 	
 }
 
@@ -172,14 +144,10 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char 
  	nuevoVehiculo->siguiente = NULL;
  	nuevoVehiculo->tarifa = 0;
 
- 	pthread_mutex_lock(&semaforoCodigoVehiculo);
  	// Se actualiza el contador de vehiculo:
  	*cod = *cod + 1;
  	*id = *cod;
- 	pthread_mutex_unlock(&semaforoCodigoVehiculo);
 
-
- 	pthread_mutex_lock(&semaforoListaVehiculos);
  	// En caso de agregar el primer vehiculo a la lista:
  	if (*lisVehic == NULL) {
  		printf("ES NULL\n");
@@ -203,14 +171,13 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char 
  		aux->siguiente = nuevoVehiculo;
  	
  	}
- 	pthread_mutex_unlock(&semaforoListaVehiculos);
 
  	escribirBitacora(bitacora,"e",*nuevoVehiculo);
 }
 
 //----------------------------------------------------------------------------//
 
-int eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char *bitacora, int *puestosOcupados) {
+int buscarVehiculo(Vehiculo **inicioList, char *serial) {
 
 	Vehiculo *aux = *inicioList;
 	Vehiculo *anterior = NULL;
@@ -218,8 +185,6 @@ int eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char 
 	int comparador;
 	int tarifaVehiculo = 0;
 
-
-	pthread_mutex_lock(&semaforoListaVehiculos);
 	// Busca al vehiculo a eliminar y elimina su referencia de la lista:
 	while (aux != NULL) {
 
@@ -247,8 +212,60 @@ int eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char 
 		aux = aux->siguiente;
 
 	}
-	pthread_mutex_unlock(&semaforoListaVehiculos);
 
+	// Con el vehiculo a eliminar, se acualiz
+	if (encontrado) {
+
+		printf("ENCONTRADO \n");
+		return 1; 
+	}
+	
+	else {
+		printf("NO ENCONTRADO\n");
+		return 0;
+	}
+
+
+}
+
+
+
+
+int eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char *bitacora, int *puestosOcupados) {
+
+	Vehiculo *aux = *inicioList;
+	Vehiculo *anterior = NULL;
+	int encontrado = 0;
+	int comparador;
+	int tarifaVehiculo = 0;
+
+	// Busca al vehiculo a eliminar y elimina su referencia de la lista:
+	while (aux != NULL) {
+
+		comparador = strcmp(aux->serial,serial);
+
+		printf("SERIAL AUX: %s / SERIAL A ELIMINAR %s \n",aux->serial,serial);
+
+		if (comparador == 0) {
+			
+
+			if (anterior == NULL) {
+				*inicioList = aux->siguiente;
+				encontrado = 1;
+				break;
+			}
+
+			else {
+				anterior->siguiente = aux->siguiente;
+				encontrado = 1;
+				break;
+			}
+		}
+
+		anterior = aux;
+		aux = aux->siguiente;
+
+	}
 
 	// Con el vehiculo a eliminar, se acualiz
 	if (encontrado) {
@@ -259,13 +276,9 @@ int eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char 
 		printf("LA TARIFA ES: %d\n",tarifaVehiculo);
 		escribirBitacora(bitacora,"s",*aux);
 
-		pthread_mutex_lock(&semaforoListaVehiculos);
 		free(aux);
-		pthread_mutex_unlock(&semaforoListaVehiculos);
 
-		pthread_mutex_lock(&semaforoPuestosOcupados);
 		*puestosOcupados = *puestosOcupados -1;
-		pthread_mutex_unlock(&semaforoPuestosOcupados);
 	}
 	
 	else {
@@ -337,7 +350,6 @@ int calcular_costo(Vehiculo vehiculo) {
 // en "h" la direccion del cliente buscado en caso de encontrarlo.
 int getCliente(Host *clientes,char *dir_origen,Host *h){
 
-	pthread_mutex_lock(&semaforoListaClientes);
 	Host *aux = clientes;
 	while (aux != NULL){
 		if (strcmp(aux->ip,dir_origen) == 0){
@@ -348,19 +360,16 @@ int getCliente(Host *clientes,char *dir_origen,Host *h){
 			aux = aux->siguiente;
 		}
 	}
-	pthread_mutex_unlock(&semaforoListaClientes);
 	return 0;
 }
 
 void agregarCliente(Host *clientes, Host *h){
 
-	pthread_mutex_lock(&semaforoListaClientes);
 	Host *aux = clientes;
 	while (aux != NULL){
 		aux = aux->siguiente;
 	}
 	aux = h;
-	pthread_mutex_unlock(&semaforoListaClientes);
 }
 
 void crearCliente(int num_secuencia,char *dir_origen,Host *cliente){
@@ -536,55 +545,69 @@ int main(int argc, char *argv[]){
 					if (*puestosOcupados <= NUM_PUESTOS) {
 						//printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
 						placa = strtok(NULL,separador);
-						pthread_mutex_lock(&semaforoPuestosOcupados);
-						*puestosOcupados = *puestosOcupados + 1;
-						pthread_mutex_unlock(&semaforoPuestosOcupados);
 
-						int codigoVehiculo;
+						int encontrado = buscarVehiculo(inicioList,placa);
 
-						// Se agrega el Vehiculo a la estructura:
-						agregarVehiculo(inicioList,tiempo1,contadorVehiculos,placa,
-										argumentosBP->entradas,&codigoVehiculo);
-						// Se escribe la entrada en la Bitacora:
-						imprimirLista(inicioList);
+						if (encontrado) {
+							printf("EL VEHICULO YA ESTA\n");
+							memset(respuesta,0,strlen(respuesta));
+							strcat(respuesta, "3");
 
-						char id[10],dia[10],mes[10],anio[10],hora[10],minuto[10],segundo[10];
-						sprintf(id,"%d",codigoVehiculo);
-						sprintf(dia,"%d",tm1.tm_mday);
-						sprintf(mes,"%d",tm1.tm_mon + 1);
-						sprintf(anio,"%d",tm1.tm_year + 1900);
-						sprintf(hora,"%d",tm1.tm_hour);
-						sprintf(minuto,"%d",tm1.tm_min);
-						sprintf(segundo,"%d",tm1.tm_sec);
+						}
 
-						struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
-						p->skt = skt;
-						p->confirmado = confirmado;
+						else {
 
-						memset(respuesta,0,strlen(respuesta));
+							// Se busca vehiculo: 
+							*puestosOcupados = *puestosOcupados + 1;
 
-						char aceptado[2] = "1";
-						
-						strcat(respuesta,aceptado); // Esto es muy bestia, lo se. Luego lo acomodo
-						strcat(respuesta,"/");
-						strcat(respuesta,dia);
-						strcat(respuesta,"/");
-						strcat(respuesta,mes);
-						strcat(respuesta,"/");
-						strcat(respuesta,anio);
-						strcat(respuesta,"/");
-						strcat(respuesta,hora);
-						strcat(respuesta,"/");
-						strcat(respuesta,minuto);
-						strcat(respuesta,"/");
-						strcat(respuesta,segundo);
-						strcat(respuesta,"/");
-						strcat(respuesta,"ab1234");
-						p->mensaje = respuesta;
-						//reenviar(p);
+							int codigoVehiculo;
+
+							// Se agrega el Vehiculo a la estructura:
+							agregarVehiculo(inicioList,tiempo1,contadorVehiculos,placa,
+											argumentosBP->entradas,&codigoVehiculo);
+							// Se escribe la entrada en la Bitacora:
+							//imprimirLista(inicioList);
+
+							char id[10],dia[10],mes[10],anio[10],hora[10],minuto[10],segundo[10];
+							sprintf(id,"%d",codigoVehiculo);
+							sprintf(dia,"%d",tm1.tm_mday);
+							sprintf(mes,"%d",tm1.tm_mon + 1);
+							sprintf(anio,"%d",tm1.tm_year + 1900);
+							sprintf(hora,"%d",tm1.tm_hour);
+							sprintf(minuto,"%d",tm1.tm_min);
+							sprintf(segundo,"%d",tm1.tm_sec);
+
+							struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
+							p->skt = skt;
+							p->confirmado = confirmado;
+
+							memset(respuesta,0,strlen(respuesta));
+
+							char aceptado[2] = "1";
+							
+							strcat(respuesta,aceptado); // Esto es muy bestia, lo se. Luego lo acomodo
+							strcat(respuesta,"/");
+							strcat(respuesta,dia);
+							strcat(respuesta,"/");
+							strcat(respuesta,mes);
+							strcat(respuesta,"/");
+							strcat(respuesta,anio);
+							strcat(respuesta,"/");
+							strcat(respuesta,hora);
+							strcat(respuesta,"/");
+							strcat(respuesta,minuto);
+							strcat(respuesta,"/");
+							strcat(respuesta,segundo);
+							strcat(respuesta,"/");
+							strcat(respuesta,"ab1234");
+							p->mensaje = respuesta;
+							//reenviar(p);
+						}
+
 					}
 
 					else {
+
 						struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
 						p->skt = skt;
 						p->confirmado = confirmado;
@@ -593,6 +616,8 @@ int main(int argc, char *argv[]){
 						p->mensaje = respuesta;
 
 					}
+
+
 					break;
 				// Salida:
 		    	case 1:
