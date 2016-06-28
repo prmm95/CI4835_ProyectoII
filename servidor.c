@@ -163,7 +163,6 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char 
 
  	// En caso de agregar el primer vehiculo a la lista:
  	if (*lisVehic == NULL) {
- 		printf("HOLA\n");
  		*lisVehic = nuevoVehiculo;
  	}
  	
@@ -433,6 +432,8 @@ int main(int argc, char *argv[]){
 
 	    	// Entrada:
 	    	case 0:
+	    		printf("------------------\n");
+	    		printf("Se recibio una solicitud de entrada de un vehiculo...\n");
 
 	    		// Verificacion de puestos disponibles:
 				if (*puestosOcupados <= NUM_PUESTOS) {
@@ -443,13 +444,16 @@ int main(int argc, char *argv[]){
 					encontrado = buscarVehiculo(inicioList,placa);
 
 					if (encontrado) {
+						printf("------------------\n");
+						printf("El vehiculo ya se encuentra en el estacionamiento...\n");
 						memset(respuesta,0,strlen(respuesta));
 						strcat(respuesta,"3");
 
 					}
 
 					else {
-
+						printf("------------------\n");
+						printf("Entrada autorizada del vehiculo...\n");
 						*puestosOcupados = *puestosOcupados + 1;
 
 						// Se agrega el Vehiculo a la estructura:
@@ -491,7 +495,8 @@ int main(int argc, char *argv[]){
 				}
 
 				else {
-
+					printf("------------------\n");
+					printf("El estacionamiento no tiene puestos disponibles..\n");
 					struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
 					p->skt = skt;
 					memset(respuesta,0,strlen(respuesta));
@@ -505,22 +510,26 @@ int main(int argc, char *argv[]){
 
 			// Salida:
 	    	case 1:
-
+	    		printf("------------------\n");
+	    		printf("Se recibio una solicitud de salida de un vehiculo...\n");
 	    		// eliminar vehiculo:
 	    		placa = strtok(NULL,separador);
 	    		int tarifa; 
 	    		tarifa = eliminarVehiculo(inicioList,placa,tiempo1,argumentosBP->salidas,puestosOcupados);
 
 
-	    		if (tarifa == 0) {
 
+	    		if (tarifa == 0) {
 	    			memset(respuesta,0,strlen(respuesta));
 					strcat(respuesta, "4");
+					printf("------------------\n");
+					printf("El vehiculo no se encontraba en el estacionamiento...\n");
 
 	    		}
 
 	    		else {
-
+	    			printf("------------------\n");
+	    			printf("Salida del vehiculo autorizada...\n");
 	    			char str[15];
 					sprintf(str, "%d",tarifa);
 
@@ -528,15 +537,14 @@ int main(int argc, char *argv[]){
 					strcat(respuesta, "2");
 					strcat(respuesta,"/");
 					strcat(respuesta,str);
-		    		//escribir Bitacora (salida);
-		    		//escribirBitacora(argumentosBP->salidas,"s",carro1);
 	    		}
 
 
 	    		break;
 
 	    	default:
-	    		perror("Operación incorrecta\n");
+	    		printf("------------------\n");
+	    		perror("Error: operación incorrecta...\n");
 	    		break;  
 	    }
 
