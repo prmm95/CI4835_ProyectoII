@@ -406,6 +406,10 @@ int main(int argc, char *argv[]){
 		}else if(strcmp(argv[i],"-o") == 0){
 			strcpy(salidas,argv[i+1]);
 		}
+		else {
+			printf("Error: Los parametros no siguen el formato correcto\n");
+			exit(1);
+		}
 	}
 
 	struct Skt skt;

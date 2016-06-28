@@ -68,6 +68,11 @@ int main(int argc, char *argv[]) {
 			placa = malloc(sizeof(argv[i+1]));
 			strcpy(placa,argv[i+1]);
 		}
+
+		else {
+			printf("Error: Los parametros no siguen el formato correcto\n");
+			exit(1);
+		}
 	}
 
 	// Creando el socket
