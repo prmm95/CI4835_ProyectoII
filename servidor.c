@@ -210,7 +210,7 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char 
 
 //----------------------------------------------------------------------------//
 
-void eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char *bitacora, int *puestosOcupados) {
+int eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char *bitacora, int *puestosOcupados) {
 
 	Vehiculo *aux = *inicioList;
 	Vehiculo *anterior = NULL;
@@ -271,6 +271,8 @@ void eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char
 	else {
 		printf("NO ENCONTRADO\n");
 	}
+
+	return tarifaVehiculo;
 	
 }
 
@@ -600,17 +602,21 @@ int main(int argc, char *argv[]){
 		 			//carro1.Salida.segundos = t2
 		    		// eliminar vehiculo:
 		    		placa = strtok(NULL,separador);
-		    		eliminarVehiculo(inicioList,placa,tiempo1,argumentosBP->salidas,puestosOcupados);
+		    		int tarifa; 
+		    		tarifa = eliminarVehiculo(inicioList,placa,tiempo1,argumentosBP->salidas,puestosOcupados);
+
+					char str[15];
+					sprintf(str, "%d",tarifa);
 
 		    		memset(respuesta,0,strlen(respuesta));
 					strcat(respuesta, "2");
 					strcat(respuesta,"/");
-					strcat(respuesta,"2050");
+					strcat(respuesta,str);
 
 		    		// escribir Bitacora (salida);
 		    		//escribirBitacora(argumentosBP->salidas,"s",carro1);
 		    		break;
-		    		
+
 		    	default:
 		    		perror("Operación incorrecta\n");
 		    		break;  
@@ -631,11 +637,8 @@ int main(int argc, char *argv[]){
 
 	}
 
-	imprimirLista(&listaVehiculos);
-
-	//close(skt.sockfd);
-	pthread_exit(NULL);
-	exit (0);
+	close(skt.sockfd);
+	exit(0);
 }
 
 //----------------------------------------------------------------------------//
