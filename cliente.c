@@ -81,11 +81,10 @@ int main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	char mensaje[30] = ""; // Se puede hacer una func para formar el mensaje
+	char mensaje[30] = ""; 
 	strcat(mensaje, opcion);
 	strcat(mensaje,"/");
 	strcat(mensaje, placa);
-	printf("el string es: %s \n",mensaje);
 
 	/* a donde mandar */
 	skt.their_addr.sin_family = AF_INET; /* usa host byte order */
@@ -116,6 +115,10 @@ int main(int argc, char *argv[]) {
 	char *tipoMensaje;
 	char separador[2] = "/";
 
+	// El cliente hace 3 intentos de enviar la solicitud (con un timeout de
+	// 2 segundos antes de indicar que no pudo comunicarse con el Computador
+	// Central (CC))
+
 	while (intentos < 3 && skt.numbytes == -1) {
 
 		if ((skt.numbytes=sendto(skt.sockfd,mensaje,strlen(mensaje),0,(struct sockaddr *)&(skt.their_addr),
@@ -132,13 +135,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (intentos >= 3) {
-		printf("Se ha superado numero de intentos para comunicarse\n");
+		printf("Error: Se ha superado numero de intentos para comunicarse\n");
 		printf("con el Computador Central (CC)\n");
 	} 
 
 	else {
-
-		printf("LO QUE RECIBI FUE: %s\n",buf);
 
 		tipoMensaje = strtok(buf,separador);
 
@@ -176,9 +177,7 @@ int main(int argc, char *argv[]) {
 		else if (strcmp(tipoMensaje,"2") == 0) {
 
 			char *monto;
-
 			monto = strtok(NULL,separador);
-
 
 			printf("\n---------------\n");
 			printf("SALIDA: \n");
@@ -187,16 +186,16 @@ int main(int argc, char *argv[]) {
 		}
 
 		else if (strcmp(tipoMensaje,"3") == 0) {
-			printf("El vehiculo que desea ingresar ya se encuentra en el estacionamiento.\n");
+			printf("Error: El vehiculo que desea ingresar ya se encuentra en el estacionamiento.\n");
+		}
+
+		else if (strcmp(tipoMensaje,"4") == 0) {
+			printf("Error: El vehiculo que intenta salir no se encontraba en el estacionamiento\n");
 		}
 
 	}
 
-	
-
-	/* cierro socket */
 	close(skt.sockfd);
-	pthread_exit(NULL);
 	exit(0);
 }
 

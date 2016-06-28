@@ -228,8 +228,7 @@ int buscarVehiculo(Vehiculo **inicioList, char *serial) {
 
 }
 
-
-
+//----------------------------------------------------------------------------//
 
 int eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char *bitacora, int *puestosOcupados) {
 
@@ -308,11 +307,6 @@ void imprimirLista(Vehiculo **inicioList) {
 
 }
 
-
-//----------------------------------------------------------------------------//
-
-
-
 //----------------------------------------------------------------------------//
 
 
@@ -381,29 +375,6 @@ void crearCliente(int num_secuencia,char *dir_origen,Host *cliente){
 	strcpy(cliente->ip,dir_origen);
 	cliente->siguiente = NULL;
 
-}
-
-// Determina si el servidor posee una conexion abierta con el cliente indicado
-// Si no existia conexion con el host o no hay sesiones abiertas, agrega al
-// cliente a la lista de hosts 
-
-int sesionAbierta(Host *clientes,char *dir_origen,int num_secuencia,int *confirmado){
-
-	Host *cliente;
-	if (getCliente(clientes,dir_origen,cliente) == 0){
-		crearCliente(num_secuencia,dir_origen,cliente);
-		confirmado = &(cliente->confirmado);
-		agregarCliente(clientes,cliente); // Colocar confirmado en 0
-		return 0; // No habia una sesion abierta
-	}else{
-		if (cliente->num_secuencia == 0){ //Ya ha habido comunicacion con el mismo cliente
-			cliente->num_secuencia = num_secuencia; // pero no hay una sesion actualmente
-			confirmado = &(cliente->confirmado);
-			return 0;
-		}else{
-			return 1; // Cambiar num_secuencia a 0 cuando se confirme el mensaje en el case 2 linea 455
-		}
-	}
 }
 
 //----------------------------------------------------------------------------//
@@ -533,117 +504,127 @@ int main(int argc, char *argv[]){
 
 		// Si el servidor no esta en medio de una comunicacion con el mismo cliente
 		printf("TIPO MENSAJE %d\n",opcion);
-		if (!sesionAbierta(argumentosBP->clientes,argumentosBP->origen,
-										atoi(num_secuencia),confirmado)){
-			// Verificacion de la operación (Entrada o salida):
-		    switch(opcion) {
+		// Verificacion de la operación (Entrada o salida):
+	    switch(opcion) {
 
-		    	// Entrada:
-		    	case 0:
+	    	// Entrada:
+	    	case 0:
 
-		    		// Verificacion de puestos disponibles:
-					if (*puestosOcupados <= NUM_PUESTOS) {
-						//printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
-						placa = strtok(NULL,separador);
+	    		// Verificacion de puestos disponibles:
+				if (*puestosOcupados <= NUM_PUESTOS) {
+					//printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
+					placa = strtok(NULL,separador);
 
-						int encontrado = buscarVehiculo(inicioList,placa);
+					int encontrado = buscarVehiculo(inicioList,placa);
 
-						if (encontrado) {
-							printf("EL VEHICULO YA ESTA\n");
-							memset(respuesta,0,strlen(respuesta));
-							strcat(respuesta, "3");
-
-						}
-
-						else {
-
-							// Se busca vehiculo: 
-							*puestosOcupados = *puestosOcupados + 1;
-
-							int codigoVehiculo;
-
-							// Se agrega el Vehiculo a la estructura:
-							agregarVehiculo(inicioList,tiempo1,contadorVehiculos,placa,
-											argumentosBP->entradas,&codigoVehiculo);
-							// Se escribe la entrada en la Bitacora:
-							//imprimirLista(inicioList);
-
-							char id[10],dia[10],mes[10],anio[10],hora[10],minuto[10],segundo[10];
-							sprintf(id,"%d",codigoVehiculo);
-							sprintf(dia,"%d",tm1.tm_mday);
-							sprintf(mes,"%d",tm1.tm_mon + 1);
-							sprintf(anio,"%d",tm1.tm_year + 1900);
-							sprintf(hora,"%d",tm1.tm_hour);
-							sprintf(minuto,"%d",tm1.tm_min);
-							sprintf(segundo,"%d",tm1.tm_sec);
-
-							struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
-							p->skt = skt;
-							p->confirmado = confirmado;
-
-							memset(respuesta,0,strlen(respuesta));
-
-							char aceptado[2] = "1";
-							
-							strcat(respuesta,aceptado); // Esto es muy bestia, lo se. Luego lo acomodo
-							strcat(respuesta,"/");
-							strcat(respuesta,dia);
-							strcat(respuesta,"/");
-							strcat(respuesta,mes);
-							strcat(respuesta,"/");
-							strcat(respuesta,anio);
-							strcat(respuesta,"/");
-							strcat(respuesta,hora);
-							strcat(respuesta,"/");
-							strcat(respuesta,minuto);
-							strcat(respuesta,"/");
-							strcat(respuesta,segundo);
-							strcat(respuesta,"/");
-							strcat(respuesta,"ab1234");
-							p->mensaje = respuesta;
-							//reenviar(p);
-						}
+					if (encontrado) {
+						printf("EL VEHICULO YA ESTA\n");
+						memset(respuesta,0,strlen(respuesta));
+						strcat(respuesta, "3");
 
 					}
 
 					else {
 
+						// Se busca vehiculo: 
+						*puestosOcupados = *puestosOcupados + 1;
+
+						int codigoVehiculo;
+
+						// Se agrega el Vehiculo a la estructura:
+						agregarVehiculo(inicioList,tiempo1,contadorVehiculos,placa,
+										argumentosBP->entradas,&codigoVehiculo);
+						// Se escribe la entrada en la Bitacora:
+						//imprimirLista(inicioList);
+
+						char id[10],dia[10],mes[10],anio[10],hora[10],minuto[10],segundo[10];
+						sprintf(id,"%d",codigoVehiculo);
+						sprintf(dia,"%d",tm1.tm_mday);
+						sprintf(mes,"%d",tm1.tm_mon + 1);
+						sprintf(anio,"%d",tm1.tm_year + 1900);
+						sprintf(hora,"%d",tm1.tm_hour);
+						sprintf(minuto,"%d",tm1.tm_min);
+						sprintf(segundo,"%d",tm1.tm_sec);
+
 						struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
 						p->skt = skt;
 						p->confirmado = confirmado;
-						memset(respuesta,0,strlen(respuesta));
-						strcat(respuesta, "0");
-						p->mensaje = respuesta;
 
+						memset(respuesta,0,strlen(respuesta));
+
+						char aceptado[2] = "1";
+						
+						strcat(respuesta,aceptado); // Esto es muy bestia, lo se. Luego lo acomodo
+						strcat(respuesta,"/");
+						strcat(respuesta,dia);
+						strcat(respuesta,"/");
+						strcat(respuesta,mes);
+						strcat(respuesta,"/");
+						strcat(respuesta,anio);
+						strcat(respuesta,"/");
+						strcat(respuesta,hora);
+						strcat(respuesta,"/");
+						strcat(respuesta,minuto);
+						strcat(respuesta,"/");
+						strcat(respuesta,segundo);
+						strcat(respuesta,"/");
+						strcat(respuesta,"ab1234");
+						p->mensaje = respuesta;
+						//reenviar(p);
 					}
 
+				}
 
-					break;
-				// Salida:
-		    	case 1:
+				else {
 
-		    		// eliminar vehiculo:
-		    		placa = strtok(NULL,separador);
-		    		int tarifa; 
-		    		tarifa = eliminarVehiculo(inicioList,placa,tiempo1,argumentosBP->salidas,puestosOcupados);
+					struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
+					p->skt = skt;
+					p->confirmado = confirmado;
+					memset(respuesta,0,strlen(respuesta));
+					strcat(respuesta, "0");
+					p->mensaje = respuesta;
 
-					char str[15];
+				}
+
+
+				break;
+			// Salida:
+	    	case 1:
+
+	    		// eliminar vehiculo:
+	    		placa = strtok(NULL,separador);
+	    		int tarifa; 
+	    		tarifa = eliminarVehiculo(inicioList,placa,tiempo1,argumentosBP->salidas,puestosOcupados);
+
+
+	    		if (tarifa == 0) {
+
+	    			memset(respuesta,0,strlen(respuesta));
+					strcat(respuesta, "4");
+
+	    		}
+
+	    		else {
+
+	    			char str[15];
 					sprintf(str, "%d",tarifa);
 
 		    		memset(respuesta,0,strlen(respuesta));
 					strcat(respuesta, "2");
 					strcat(respuesta,"/");
 					strcat(respuesta,str);
-
-		    		// escribir Bitacora (salida);
+		    		//escribir Bitacora (salida);
 		    		//escribirBitacora(argumentosBP->salidas,"s",carro1);
-		    		break;
+	    		}
 
-		    	default:
-		    		perror("Operación incorrecta\n");
-		    		break;  
-		    }
-		}
+
+	    		break;
+
+	    	default:
+	    		perror("Operación incorrecta\n");
+	    		break;  
+	    }
+
 		printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
 		free(argumentos); // Ver si hace falta
 
