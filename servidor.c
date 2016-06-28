@@ -329,7 +329,7 @@ int main(int argc, char *argv[]){
 
 	// Inicialización de variables: 
 	int puestosOcupados = 0;
- 	int contadorVehiculos = 0; // Global
+ 	int contadorVehiculos = 0; 
 	int i;
 	char respuesta[60];
 	Vehiculo *listaVehiculos = NULL;
@@ -409,7 +409,6 @@ int main(int argc, char *argv[]){
 		time_t t2 = t1 + 7201;
 		Tiempo tm2 = *localtime(&t2);
 
-		// Prueba
 		Vehiculo **inicioList = argumentosBP->listaVehiculos;
 
 		// Si el servidor no esta en medio de una comunicacion con el mismo cliente
@@ -534,11 +533,9 @@ int main(int argc, char *argv[]){
 	    		break;  
 	    }
 
-		//free(argumentos); // Ver si hace falta
+		free(argumentos); 
 
 		}
-
-		/* cerramos descriptor del skt */
 
 		if ((skt.numbytes=sendto(skt.sockfd,respuesta,sizeof(respuesta),0,(struct sockaddr *)&(skt.their_addr),
 		sizeof(struct sockaddr))) == -1) {
