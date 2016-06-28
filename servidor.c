@@ -590,16 +590,13 @@ int main(int argc, char *argv[]){
 						p->confirmado = confirmado;
 						memset(respuesta,0,strlen(respuesta));
 						strcat(respuesta, "0");
-						strcat(respuesta,"/");
-						strcat(respuesta,num_secuencia);
 						p->mensaje = respuesta;
-						//reenviar(p);
+
 					}
 					break;
 				// Salida:
 		    	case 1:
-		    		//carro1.Salida.tiempoF = tm2;
-		 			//carro1.Salida.segundos = t2
+
 		    		// eliminar vehiculo:
 		    		placa = strtok(NULL,separador);
 		    		int tarifa; 
@@ -632,7 +629,7 @@ int main(int argc, char *argv[]){
 		if ((skt.numbytes=sendto(skt.sockfd,respuesta,sizeof(respuesta),0,(struct sockaddr *)&(skt.their_addr),
 		sizeof(struct sockaddr))) == -1) {
 			perror("sendto");
-				exit(2);
+			exit(2);
 		}
 
 	}
