@@ -97,7 +97,6 @@ void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) 
 	 * Descripción: Permite agregar los datos del vehiculo, fecha, hora y tipo de
 		operacion para mantener un registro de la entrada y salida (en archivos 
 		separados).
-	 *
 	 * Variables de entrada: 
 	 *	- Ruta al archivo para el registro.
 	 *	- tipoOperacion: Salida o entrada
@@ -129,35 +128,6 @@ void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) 
 	fclose(bitacora);
 	
 }
-
-//----------------------------------------------------------------------------//
-
-void imprimirLista(Vehiculo **inicioList) {
-	/*
-	 * Descripción: Imprime una estuctura del tipo vehiculo.
-	 *
-	 * Variables de entrada:
-	 *	- inicioList: Apuntador al puntero que referencia a la lista de vehiculos
-	 *	mantenida por el servidor.
-	*/
-
- Vehiculo *aux = *inicioList;
- int i = 0;
-
- 	while (aux != NULL) {
-
-		printf("-------------------\n");
-		printf("Serial: %s \n",aux->serial);
-	 	printf("Código: %d",aux->codigo);
-	 	printf("\n-------------------\n");
-	  	i++;
-	  	aux = aux->siguiente;
-	 }
-
- printf("Numero de elementos en la lista -> %d\n",i);
-
-}
-
 
 //----------------------------------------------------------------------------//
 
@@ -238,22 +208,18 @@ int buscarVehiculo(Vehiculo **inicioList, char *serial) {
 	int comparador;
 	int tarifaVehiculo = 0;
 
-	// Busca al vehiculo a eliminar y elimina su referencia de la lista:
 	while (aux != NULL) {
 
 		comparador = strcmp(aux->serial,serial);
 
 		if (comparador == 0) {
 			
-
 			if (anterior == NULL) {
-				*inicioList = aux->siguiente;
 				encontrado = 1;
 				break;
 			}
 
 			else {
-				anterior->siguiente = aux->siguiente;
 				encontrado = 1;
 				break;
 			}
@@ -264,14 +230,7 @@ int buscarVehiculo(Vehiculo **inicioList, char *serial) {
 
 	}
 
-	// Con el vehiculo a eliminar, se acualiz
-	if (encontrado) {
-		return 1; 
-	}
-	
-	else {
-		return 0;
-	}
+	return encontrado;
 
 
 }
@@ -479,7 +438,9 @@ int main(int argc, char *argv[]){
 				if (*puestosOcupados <= NUM_PUESTOS) {
 					placa = strtok(NULL,separador);
 
-					int encontrado = buscarVehiculo(inicioList,placa);
+					int encontrado; 
+
+					encontrado = buscarVehiculo(inicioList,placa);
 
 					if (encontrado) {
 						memset(respuesta,0,strlen(respuesta));
@@ -533,7 +494,6 @@ int main(int argc, char *argv[]){
 
 					struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
 					p->skt = skt;
-					p->confirmado = confirmado;
 					memset(respuesta,0,strlen(respuesta));
 					strcat(respuesta, "0");
 					p->mensaje = respuesta;
@@ -580,7 +540,7 @@ int main(int argc, char *argv[]){
 	    		break;  
 	    }
 
-		free(argumentos); // Ver si hace falta
+		//free(argumentos); // Ver si hace falta
 
 		}
 
@@ -593,9 +553,6 @@ int main(int argc, char *argv[]){
 		}
 
 		memset(buf,0,strlen(buf));
-
-		imprimirLista(&listaVehiculos);
-
 
 	}
 
