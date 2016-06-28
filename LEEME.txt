@@ -64,6 +64,73 @@ codigo en cliente.c, el cual realiza las acciones siguientes:
 	al servidor solicitando un servicio.
 	- Se coloca a la espera de una respuesta.
 
+Mensajes:
+
+CLIENTE --> SERVIDOR:
+
+* Al pisar boton: Solicitud de puesto. DATOS: ID vehiculo, Tipo operacion (e)
+* Al pasar el ticket: Calculo de la tarifa. DATOS: ID vehiculo, Tipo operacion (s)
+* Al recibir un mensaje del servidor: Confirmacion. Datos: 
+
+-----------------------------------------------------------------------------
+|	TIPO OPERACION	|							DATOS 						|
+-----------------------------------------------------------------------------
+
+Tipo operacion:
+
+* 0 : Entrada
+* 1 : Salida
+
+Datos:
+
+* Serial: Al solicitar la entrada del vehiculo se envia la placa.
+* Identificador: Al solicitar la salida del vehiculo se envia el ID asignado
+previamente por el servidor.
+
+Ejemplos:
+
+Entrada
+---------------------------------------------------------------------------
+|	0	|H45FD7															  |
+---------------------------------------------------------------------------
+
+Salida
+---------------------------------------------------------------------------
+|	1	|1523															  |
+---------------------------------------------------------------------------
+
+
+SERVIDOR --> CLIENTE:
+
+* Permitiendo el paso del cliente. DATOS: Aprobado (1), Hora, fecha y codigo.
+* Denegando la entrada por falta de puestos. DATOS: No aprobado (0) el paso.
+* Monto a cancelar calculado segun el ID y el tiempo de estadia. DATOS: Salida (2), Tarifa
+-----------------------------------------------------------------------------
+|	TIPO OPERACION	|						DATOS							|
+-----------------------------------------------------------------------------
+
+Denegando la entrada
+---------------------------------------------------------------------------
+|		0		|							VACIO						  |
+---------------------------------------------------------------------------
+
+Mensaje de aprobacion de entrada de un vehiculo con ID 12 a las 00:15:25 del dia 05/10/2016
+---------------------------------------------------------------------------
+|		1		|	12	|				0510201600152512547				  |
+---------------------------------------------------------------------------
+
+Mensaje de salida de vehiculo con un monto de 150 (minimo 00000, maximo 9999 -casi 10 mil-)
+---------------------------------------------------------------------------
+|		2		|					0150								  |
+---------------------------------------------------------------------------
+
+Mensaje de respuesta al recibir del cliente la solicitud de salida de un vehiculo
+no presente en el estacionamiento.
+---------------------------------------------------------------------------
+|		4		|					VACIO								  |
+---------------------------------------------------------------------------
+
+
 Ejecucion del programa:
 
 	Cliente: sem_cli -d IP|DN -p puerto -c [se] -i serial
