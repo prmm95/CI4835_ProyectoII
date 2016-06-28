@@ -62,15 +62,6 @@ typedef struct vehiculo {
 
 //----------------------------------------------------------------------------//
 
-typedef struct Host {
-	int confirmado;
-	int num_secuencia;
-	char *ip;
-	struct Host *siguiente;
-}Host;
-
-//----------------------------------------------------------------------------//
-
 typedef struct argHilo {
 	char *buf;
 	char *entradas;
@@ -80,17 +71,12 @@ typedef struct argHilo {
 	time_t tiempoSegundos;
 	Tiempo tiempoFormato;
 	Vehiculo **listaVehiculos;
-	Host *clientes;
-	char *origen;
 	struct Skt *skt;
 } ArgumentoHilo;
 
 //----------------------------------------------------------------------------//
 //                          Definición de funciones                           //
 //----------------------------------------------------------------------------//
-
-// Notas:
-// borrar de la lista al vehiculo cuando sale
 
 void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) {
 	/*
