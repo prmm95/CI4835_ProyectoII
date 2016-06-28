@@ -129,28 +129,6 @@ void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) 
 
 //----------------------------------------------------------------------------//
 
-void imprimirLista(Vehiculo **inicioList) {
-
- Vehiculo *aux = *inicioList;
- int i = 0;
-
- 	while (aux != NULL) {
-
-		printf("-------------------\n");
-		printf("Serial: %s \n",aux->serial);
-	 	printf("Código: %d",aux->codigo);
-	 	printf("\n-------------------\n");
-	  	i++;
-	  	aux = aux->siguiente;
-	 }
-
- printf("Numero de elementos en la lista -> %d\n",i);
-
-}
-
-
-//----------------------------------------------------------------------------//
-
 void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char *bitacora,int *id) {
 			
 	// Se crea el nuevo vehiculo que se agregara a la lista enlazada:
@@ -530,9 +508,6 @@ int main(int argc, char *argv[]){
 		}
 
 		memset(buf,0,strlen(buf));
-
-		imprimirLista(&listaVehiculos);
-
 
 	}
 
