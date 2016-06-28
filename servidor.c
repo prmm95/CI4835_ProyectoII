@@ -147,7 +147,6 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char 
 
  	// En caso de agregar el primer vehiculo a la lista:
  	if (*lisVehic == NULL) {
- 		printf("ES NULL\n");
  		*lisVehic = nuevoVehiculo;
  	}
  	
@@ -159,8 +158,6 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char 
  		aux = *lisVehic;
  	
  		while (aux->siguiente != NULL) {
- 		
- 			//printf("Este es el vehiculo de codigo %d \n",aux->codigo);
 
 	 		aux = aux->siguiente;
 	 	}
@@ -187,8 +184,6 @@ int buscarVehiculo(Vehiculo **inicioList, char *serial) {
 
 		comparador = strcmp(aux->serial,serial);
 
-		printf("SERIAL AUX: %s / SERIAL A ELIMINAR %s \n",aux->serial,serial);
-
 		if (comparador == 0) {
 			
 
@@ -212,13 +207,10 @@ int buscarVehiculo(Vehiculo **inicioList, char *serial) {
 
 	// Con el vehiculo a eliminar, se acualiz
 	if (encontrado) {
-
-		printf("ENCONTRADO \n");
 		return 1; 
 	}
 	
 	else {
-		printf("NO ENCONTRADO\n");
 		return 0;
 	}
 
@@ -240,8 +232,6 @@ int eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char 
 
 		comparador = strcmp(aux->serial,serial);
 
-		printf("SERIAL AUX: %s / SERIAL A ELIMINAR %s \n",aux->serial,serial);
-
 		if (comparador == 0) {
 			
 
@@ -265,11 +255,9 @@ int eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char 
 
 	// Con el vehiculo a eliminar, se acualiz
 	if (encontrado) {
-		printf("ENCONTRADO \n");
 
 		aux->Salida = tiempoS;
 		tarifaVehiculo = calcular_costo(*aux);
-		printf("LA TARIFA ES: %d\n",tarifaVehiculo);
 		escribirBitacora(bitacora,"s",*aux);
 
 		free(aux);
@@ -278,7 +266,8 @@ int eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char 
 	}
 	
 	else {
-		printf("NO ENCONTRADO\n");
+		; // en caso de no encontrar el vehiculo, no lo elimina. (Tarifa 0
+		// se usa para verificar)
 	}
 
 	return tarifaVehiculo;
@@ -307,11 +296,7 @@ int calcular_costo(Vehiculo vehiculo) {
 	double horas;
 	segundos = difftime(vehiculo.Salida.segundos,vehiculo.Entrada.segundos);
 	horas = ceil(segundos / 3600) - 1;
-	printf("El numero de segundos es %f\n",segundos);
-	printf("El numero de horas es %f\n",horas);
 	tarifa += horas*30;
-	
-	printf("La tarifa es %d\n",tarifa);
 	
 	return tarifa;
 
@@ -332,8 +317,8 @@ int main(int argc, char *argv[]){
 	Host *listaHosts = NULL;
 
 	long puerto;
-	char entradas[50]; /* HAY QUE DEFINIR EL TAMANO DEL STRING DE LA RUTA DEL ARCHIVO */
-	char salidas[50];
+	char entradas[200]; /* HAY QUE DEFINIR EL TAMANO DEL STRING DE LA RUTA DEL ARCHIVO */
+	char salidas[200];
 	if (argc < 7){
 		printf("\nUso: sem_srv -l puerto_sem_svr -i bitacora_entrada -o bitacora_salida\n\n");
 		exit(0);
@@ -372,17 +357,9 @@ int main(int argc, char *argv[]){
 						(socklen_t *)&(skt.addr_len))) != -1) {
 		buf[skt.numbytes] = '\0';
 
-		printf("DIRECCION IP:%s",inet_ntoa(skt.their_addr.sin_addr));
 		// Se calcula el tiempo de llegada del mensaje al servidor:
 		time_t t1 = time(NULL);
 		Tiempo tm1 = *localtime(&t1);
-
-	 	//printf("MENSAJE\n");
-		//printf("Fecha: %02d/%02d/%d \n",tm1.tm_mday,tm1.tm_mon + 1,tm1.tm_year + 1900);
-		//printf("Hora: %02d:%02d:%02d \n", tm1.tm_hour, tm1.tm_min, tm1.tm_sec);
-		printf("MENSAJE: %s\n",buf);
-		//printf("QUE %s\n",argumentos->entradas);
-		//printf("TAL %s\n",argumentos->salidas);
 
 		// Se crea la estructura de datos de argumentos del hilo:
 		ArgumentoHilo *argumentos = (ArgumentoHilo *) malloc(sizeof(ArgumentoHilo)); 
@@ -424,13 +401,7 @@ int main(int argc, char *argv[]){
 		Vehiculo **inicioList = argumentosBP->listaVehiculos;
 
 
-		// prints
-		// Se muestra en pantalla el tiempo actual:
-		printf("Fecha: %02d/%02d/%d \n",tm1.tm_mday,tm1.tm_mon + 1,tm1.tm_year + 1900);
-		printf("Hora: %02d:%02d:%02d \n", tm1.tm_hour, tm1.tm_min, tm1.tm_sec);
-
 		// Si el servidor no esta en medio de una comunicacion con el mismo cliente
-		printf("TIPO MENSAJE %d\n",opcion);
 		// Verificacion de la operación (Entrada o salida):
 	    switch(opcion) {
 
@@ -439,13 +410,11 @@ int main(int argc, char *argv[]){
 
 	    		// Verificacion de puestos disponibles:
 				if (*puestosOcupados <= NUM_PUESTOS) {
-					//printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
 					placa = strtok(NULL,separador);
 
 					int encontrado = buscarVehiculo(inicioList,placa);
 
 					if (encontrado) {
-						printf("EL VEHICULO YA ESTA\n");
 						memset(respuesta,0,strlen(respuesta));
 						strcat(respuesta, "3");
 
@@ -515,6 +484,7 @@ int main(int argc, char *argv[]){
 
 
 				break;
+
 			// Salida:
 	    	case 1:
 
@@ -552,7 +522,6 @@ int main(int argc, char *argv[]){
 	    		break;  
 	    }
 
-		printf("PUESTOS DISPONIBLES %d\n",NUM_PUESTOS-*puestosOcupados);
 		free(argumentos); // Ver si hace falta
 
 		}
