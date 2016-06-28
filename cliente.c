@@ -50,8 +50,7 @@ int main(int argc, char *argv[]) {
 		printf("\nUso: sem_cli -d nombre_modulo_atencion -p puerto -c op -i id_vehiculo\n\n");
 		exit(0);
 	}
-
-	/* Aqui vamos contemplar casos como que corran el cliente con sem_cli hola -d hola ? (Ver enunciado)*/
+	
 	i = 1;
 	while (i < argc) { 
 

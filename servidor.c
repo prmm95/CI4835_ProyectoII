@@ -338,13 +338,20 @@ int main(int argc, char *argv[]){
 		printf("\nUso: sem_srv -l puerto_sem_svr -i bitacora_entrada -o bitacora_salida\n\n");
 		exit(0);
 	}
-	for (i=1;i<argc;i++){
+
+	i = 1;
+
+
+	while (i < argc) {
 		if (strcmp(argv[i],"-l") == 0){
 			puerto = atoll(argv[i+1]);
+			i = i + 2;
 		}else if(strcmp(argv[i],"-i") == 0){
 			strcpy(entradas,argv[i+1]);
+			i = i + 2;
 		}else if(strcmp(argv[i],"-o") == 0){
 			strcpy(salidas,argv[i+1]);
+			i = i + 2;
 		}
 		else {
 			printf("Error: Los parametros no siguen el formato correcto\n");
