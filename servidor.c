@@ -202,22 +202,18 @@ int buscarVehiculo(Vehiculo **inicioList, char *serial) {
 	int comparador;
 	int tarifaVehiculo = 0;
 
-	// Busca al vehiculo a eliminar y elimina su referencia de la lista:
 	while (aux != NULL) {
 
 		comparador = strcmp(aux->serial,serial);
 
 		if (comparador == 0) {
 			
-
 			if (anterior == NULL) {
-				*inicioList = aux->siguiente;
 				encontrado = 1;
 				break;
 			}
 
 			else {
-				anterior->siguiente = aux->siguiente;
 				encontrado = 1;
 				break;
 			}
@@ -228,14 +224,7 @@ int buscarVehiculo(Vehiculo **inicioList, char *serial) {
 
 	}
 
-	// Con el vehiculo a eliminar, se acualiz
-	if (encontrado) {
-		return 1; 
-	}
-	
-	else {
-		return 0;
-	}
+	return encontrado;
 
 
 }
@@ -413,7 +402,6 @@ int main(int argc, char *argv[]){
 		time_t t2 = t1 + 7201;
 		Tiempo tm2 = *localtime(&t2);
 
-		// Prueba
 		Vehiculo **inicioList = argumentosBP->listaVehiculos;
 
 		// Si el servidor no esta en medio de una comunicacion con el mismo cliente
@@ -427,7 +415,9 @@ int main(int argc, char *argv[]){
 				if (*puestosOcupados <= NUM_PUESTOS) {
 					placa = strtok(NULL,separador);
 
-					int encontrado = buscarVehiculo(inicioList,placa);
+					int encontrado; 
+
+					encontrado = buscarVehiculo(inicioList,placa);
 
 					if (encontrado) {
 						memset(respuesta,0,strlen(respuesta));
@@ -481,7 +471,6 @@ int main(int argc, char *argv[]){
 
 					struct Parametros *p = (struct Parametros *)malloc(sizeof(struct Parametros));
 					p->skt = skt;
-					p->confirmado = confirmado;
 					memset(respuesta,0,strlen(respuesta));
 					strcat(respuesta, "0");
 					p->mensaje = respuesta;
@@ -528,7 +517,7 @@ int main(int argc, char *argv[]){
 	    		break;  
 	    }
 
-		free(argumentos); // Ver si hace falta
+		//free(argumentos); // Ver si hace falta
 
 		}
 
