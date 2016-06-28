@@ -52,26 +52,32 @@ int main(int argc, char *argv[]) {
 	}
 
 	/* Aqui vamos contemplar casos como que corran el cliente con sem_cli hola -d hola ? (Ver enunciado)*/
-	for (i = 1;i < argc;i++) { 
+	i = 1;
+	while (i < argc) { 
+
 		if (strcmp(argv[i],"-p") == 0){
 			puerto = atoll(argv[i+1]);
+			i = i + 2;
 		}else if(strcmp(argv[i],"-d") == 0){
 			modulo = malloc(sizeof(argv[i+1]));
 			strcpy(modulo,argv[i+1]);
+			i = i + 2;
 		}else if(strcmp(argv[i],"-c") == 0){
 			if (strcmp(argv[i+1],"e") == 0){
 				opcion = "0";
 			}else{
 				opcion = "1";
 			}
+			i = i + 2;
 		}else if(strcmp(argv[i],"-i") == 0){
 			placa = malloc(sizeof(argv[i+1]));
 			strcpy(placa,argv[i+1]);
+			i = i + 2;
 		}
 
 		else {
-			printf("Error: Los parametros no siguen el formato correcto\n");
-			exit(1);
+		 	printf("Error: Los parametros no siguen el formato correcto\n");
+		 	exit(1);
 		}
 	}
 
