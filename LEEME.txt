@@ -151,5 +151,5 @@ Ejecucion del programa:
 Condiciones particulares:
 
 	- El tamano de las rutas bitacora_entrada.txt y bitacora_salida.txt no debe contener 
-mas de 50 caracteres.
+mas de 200 caracteres.
 	- La longitud y formato del serial puede ser alfanumerico de logitud no mayor a 10.
