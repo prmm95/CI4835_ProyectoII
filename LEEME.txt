@@ -1,10 +1,155 @@
-Explica el contenido del tar.gz
+#
+# Archivo: Leeme.txt
+#
+# Descripción: Archivo con la descripcion de los elementos que componen la
+# aplicacion, tales como el contenido de cada archivo y sus funciones.
+#
+# Autores:
+#	Samuel Arleo, 10-10969.
+#	Pablo Maldonado, 12-10561
+#
+# Última modificación: 27/06/2016
+#
 
-El código deberá incluir un documento del tipo “Leeme.txt” con al menos los
-siguientes elementos:• nombres y apellidos de los integrantes del grupo
-• números de carnet
-• qué archivos lo componen y qué tiene cada archivo
-• qué hace el programa
-• cómo se ejecuta
-• que condiciones particulares tiene, por ejemplo la entrada XX tiene máximo
-50 caracteres" o "el máximo número de registros YY es 20
+Archivos:
+
+	* Makefile: Permite realizar la compilacion del programa utilizando el comando "make".
+
+	* cliente.c: Contiene la funcionalidad del cliente. En este se encuentra principalmente
+		el main con las instrucciones que permiten recibir los argumentos del comando sem_cli.
+
+	* servidor.c: Contiene la funcionalidad del servidor. En este se definen funciones tales
+		como:
+
+		- escribirBitacora(): Permite agregar los datos del vehiculo, fecha, hora y tipo de
+		operacion para mantener un registro de la entrada y salida (en archivos separados).
+		- agregarVehiculo(): Agrega un vehiculo nuevo a la estructura "vehiculo" que almacena 
+		los vehiculos
+		actualmente en el estacionamiento.
+		- eliminarVehiculo(): Elimina un elemento de la estructura vehiculo (cuando sale del 
+		estacionamiento)
+		- imprimirLista(): Imprime una estuctura del tipo vehiculo.
+
+		Ademas, contiene las estructuras de uso unico para el servidor: 
+
+		- vehiculo: Almacena los vehiculos que entran al estacionamiento con sus fechas y hora
+		de entrada y salida, de forma que sea posible calcular la tarifa al salir.
+		- tiempo: Almacena los datos de un tiempo determinado.
+
+	* lib_socket.c: Contiene funciones y estructuras que el codigo del cliente y el servidor 
+		tienen en comun:
+
+		-crearSocket(): Crea las un socket UDP.
+
+Funcionamiento:
+
+	Al ejecutar el comando sem_svr -l 4321 -i ./entrada.txt -o ./salida.txt, se ejecuta el
+codigo en servidor.c, el cual realiza las acciones siguientes:
+
+	- Utiliza los argumentos para su ejecucion (sin importar el orden
+	de los argumentos). 
+	- Crea un socket UPD utilizando el puerto indicado con el flag -l.
+	- El socket comienza a escuchar por medio de recvfrom().
+	- Al recibir un mensaje, lo "parsea" por medio del separador "/".
+	- Dependiendo del tipo de mensaje genera una respuesta con la funcion sendTo()
+	- Retorna a la espera de otros mensajes.
+
+	Al ejecutar el comando sem_cli -d localhost -p puerto -c [se] -i serial, se ejecuta el
+codigo en cliente.c, el cual realiza las acciones siguientes:
+
+	- Utiliza los argumentos para su ejecucion (sin importar el orden
+	de los argumentos). 
+	- Crea un socket UPD utilizando el puerto indicado con el flag -l.
+	- Dependiendo del tipo de operacion a realizar (entrada o salida), envia un mensaje 
+	al servidor solicitando un servicio.
+	- Se coloca a la espera de una respuesta.
+
+Mensajes:
+
+CLIENTE --> SERVIDOR:
+
+* Al pisar boton: Solicitud de puesto. DATOS: ID vehiculo, Tipo operacion (e)
+* Al pasar el ticket: Calculo de la tarifa. DATOS: ID vehiculo, Tipo operacion (s)
+* Al recibir un mensaje del servidor: Confirmacion. Datos: 
+
+-----------------------------------------------------------------------------
+|	TIPO OPERACION	|							DATOS 						|
+-----------------------------------------------------------------------------
+
+Tipo operacion:
+
+* 0 : Entrada
+* 1 : Salida
+
+Datos:
+
+* Serial: Al solicitar la entrada del vehiculo se envia la placa.
+* Identificador: Al solicitar la salida del vehiculo se envia el ID asignado
+previamente por el servidor.
+
+Ejemplos:
+
+Entrada
+---------------------------------------------------------------------------
+|	0	|H45FD7															  |
+---------------------------------------------------------------------------
+
+Salida
+---------------------------------------------------------------------------
+|	1	|1523															  |
+---------------------------------------------------------------------------
+
+
+SERVIDOR --> CLIENTE:
+
+* Permitiendo el paso del cliente. DATOS: Aprobado (1), Hora, fecha y codigo.
+* Denegando la entrada por falta de puestos. DATOS: No aprobado (0) el paso.
+* Monto a cancelar calculado segun el ID y el tiempo de estadia. DATOS: Salida (2), Tarifa
+-----------------------------------------------------------------------------
+|	TIPO OPERACION	|						DATOS							|
+-----------------------------------------------------------------------------
+
+Denegando la entrada
+---------------------------------------------------------------------------
+|		0		|							VACIO						  |
+---------------------------------------------------------------------------
+
+Mensaje de aprobacion de entrada de un vehiculo con ID 12 a las 00:15:25 del dia 05/10/2016
+---------------------------------------------------------------------------
+|		1		|	12	|				0510201600152512547				  |
+---------------------------------------------------------------------------
+
+Mensaje de salida de vehiculo con un monto de 150 (minimo 00000, maximo 9999 -casi 10 mil-)
+---------------------------------------------------------------------------
+|		2		|					0150								  |
+---------------------------------------------------------------------------
+
+Mensaje de respuesta al recibir del cliente la solicitud de salida de un vehiculo
+no presente en el estacionamiento.
+---------------------------------------------------------------------------
+|		4		|					VACIO								  |
+---------------------------------------------------------------------------
+
+
+Ejecucion del programa:
+
+	Cliente: sem_cli -d IP|DN -p puerto -c [se] -i serial
+
+		* -d: IP o nombre de dominio
+		* -p puerto: Puerto del servidor a contactar
+		* -c s|e : Operacion a solicitar al servidor (e: entrada de vehiculo, s: salida)
+		* -i serial: Identificador del vehiculo.
+
+	Servidor: sem_svr -l puerto_local -i bitacora_entrada.txt -o bitacora_salida.txt
+
+		* -l puerto_local: Puerto local donde escuchara la aplicacion (si se corre
+		en localhost debe ser distinto al del cliente).
+		* -i bitacora_entrada.txt: Ruta al archivo donde almacenar el registro de entrada
+		* -o bitacora_salida.txt:  Ruta al archivo donde almacenar el registro de salida
+	
+
+Condiciones particulares:
+
+	- El tamano de las rutas bitacora_entrada.txt y bitacora_salida.txt no debe contener 
+mas de 200 caracteres.
+	- La longitud y formato del serial puede ser alfanumerico de logitud no mayor a 10.
