@@ -12,7 +12,6 @@
  *
 */
 
-
 //----------------------------------------------------------------------------//
 //                        Directivas de preprocesador                         //
 //----------------------------------------------------------------------------//
@@ -35,7 +34,6 @@
 //----------------------------------------------------------------------------//
 
 #define NUM_PUESTOS 200 // Número de puestos del estacionamiento.
-#define NUM_THREADS 3
 #define BUFFER_LEN 1024
 
 //----------------------------------------------------------------------------//
@@ -64,8 +62,7 @@ typedef struct vehiculo {
 
 //----------------------------------------------------------------------------//
 
-typedef struct Host
-{
+typedef struct Host {
 	int confirmado;
 	int num_secuencia;
 	char *ip;
@@ -87,7 +84,6 @@ typedef struct argHilo {
 	char *origen;
 	struct Skt *skt;
 } ArgumentoHilo;
-
 
 //----------------------------------------------------------------------------//
 //                          Definición de funciones                           //
@@ -131,6 +127,7 @@ void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) 
 	
 }
 
+//----------------------------------------------------------------------------//
 
 void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char *bitacora,int *id) {
 			
@@ -288,27 +285,7 @@ int eliminarVehiculo(Vehiculo **inicioList, char *serial, TiempoV tiempoS, char 
 	
 }
 
-
-void imprimirLista(Vehiculo **inicioList) {
-
-	Vehiculo *aux = *inicioList;
-	int i = 0;
-
-	while (aux != NULL) {
-		printf("-------------------\n");
-		printf("Serial: %s \n",aux->serial);
-		printf("Código: %d",aux->codigo);
-		printf("\n-------------------\n");
-		i++;
-		aux = aux->siguiente;
-	}
-
-	printf("Numero de elementos en la lista -> %d\n",i);
-
-}
-
 //----------------------------------------------------------------------------//
-
 
 int calcular_costo(Vehiculo vehiculo) {
 	/*
@@ -337,43 +314,6 @@ int calcular_costo(Vehiculo vehiculo) {
 	printf("La tarifa es %d\n",tarifa);
 	
 	return tarifa;
-
-}
-
-// Busca un cliente por su direccion IP en la lista de clientes y retorna
-// en "h" la direccion del cliente buscado en caso de encontrarlo.
-int getCliente(Host *clientes,char *dir_origen,Host *h){
-
-	Host *aux = clientes;
-	while (aux != NULL){
-		if (strcmp(aux->ip,dir_origen) == 0){
-			h = aux;
-			return 1;
-		}
-		else{
-			aux = aux->siguiente;
-		}
-	}
-	return 0;
-}
-
-void agregarCliente(Host *clientes, Host *h){
-
-	Host *aux = clientes;
-	while (aux != NULL){
-		aux = aux->siguiente;
-	}
-	aux = h;
-}
-
-void crearCliente(int num_secuencia,char *dir_origen,Host *cliente){
-
-	cliente = (Host *)malloc(sizeof(Host));
-	cliente->confirmado = 0;
-	cliente->num_secuencia = num_secuencia;
-	cliente->ip = (char *)malloc(strlen(dir_origen));
-	strcpy(cliente->ip,dir_origen);
-	cliente->siguiente = NULL;
 
 }
 
@@ -415,9 +355,6 @@ int main(int argc, char *argv[]){
 	struct Skt skt;
 	crearSocket(&skt,puerto,1);
 	char buf[BUFFER_LEN];
-	pthread_t threads[NUM_THREADS];
-	int num_hilos = 0;
-	int rc;
 	skt.addr_len = sizeof(struct sockaddr);
 	printf("Esperando datos ....\n");
 
@@ -467,16 +404,7 @@ int main(int argc, char *argv[]){
 		int  *puestosOcupados = argumentosBP->puestosOcupados;
 		int  *contadorVehiculos = argumentosBP->contadorVehiculos;
 		operacion = strtok(argumentosBP->buf,separador);
-		//tipoMensaje = strtok(NULL,separador); Este campo se elimino
-		//num_secuencia = strtok(NULL,separador);
 		int opcion = atoi(operacion);
-
-			//char *placa = placaStr;
-
-
-		//time_t t1 = argumentosBP->tiempoSegundos;
-		//Tiempo tm1 = argumentosBP->tiempoFormato;
-
 		TiempoV tiempo1;
 		tiempo1.tiempoF = tm1;
 		tiempo1.segundos = t1;
@@ -485,7 +413,6 @@ int main(int argc, char *argv[]){
 		time_t t2 = t1 + 7201;
 		Tiempo tm2 = *localtime(&t2);
 
-		//armar tiempo 1
 		// Prueba
 		Vehiculo **inicioList = argumentosBP->listaVehiculos;
 
@@ -494,17 +421,6 @@ int main(int argc, char *argv[]){
 		// Se muestra en pantalla el tiempo actual:
 		printf("Fecha: %02d/%02d/%d \n",tm1.tm_mday,tm1.tm_mon + 1,tm1.tm_year + 1900);
 		printf("Hora: %02d:%02d:%02d \n", tm1.tm_hour, tm1.tm_min, tm1.tm_sec);
-		// printf("HOLA %s\n",argumentosBP->buf);
-		// printf("QUE %s\n",argumentosBP->entradas);
-		// printf("TAL %s\n",argumentosBP->salidas);
-		// printf("el paquete contiene: %s\n", argumentosBP->buf);
-		// printf("La operacion es -> %s\n",operacion);
-		// printf("El tipo de mensaje es -> %s\n",tipoMensaje);
-		// printf("El numero de secuencia es es -> %s\n",numeroSecuencia);
-		//printf("La placa es -> %s\n",placa);
-		// printf("El numero de puestos ocupados es -> %d\n",*puestosOcupados);
-		// printf("El codigo del Vehiculo es -> %d\n",*argumentosBP->contadorVehiculos);
-
 
 		// Si el servidor no esta en medio de una comunicacion con el mismo cliente
 		printf("TIPO MENSAJE %d\n",opcion);
