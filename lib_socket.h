@@ -26,6 +26,8 @@ struct Skt {
 	int numbytes;
 } skt;
 
+//----------------------------------------------------------------------------//
+
 struct Parametros {
 	struct Skt *skt;
 	int *confirmado;
