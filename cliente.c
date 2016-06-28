@@ -46,9 +46,8 @@ int main(int argc, char *argv[]) {
 
 	// Verificación del pase correcto de argumentos:
 	if (argc < 8){
-		//perror("Pase incorrecto parámetros\n");
 		printf("\nUso: sem_cli -d nombre_modulo_atencion -p puerto -c op -i id_vehiculo\n\n");
-		exit(0);
+		exit(1);
 	}
 
 	i = 1;
@@ -79,6 +78,8 @@ int main(int argc, char *argv[]) {
 		 	exit(1);
 		}
 	}
+
+
 
 	// Creando el socket
 	struct Skt skt;
@@ -118,8 +119,7 @@ int main(int argc, char *argv[]) {
 
  	if (setsockopt (skt.sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,
         sizeof(timeout)) < 0)
-    	 perror("Error en la funcion setsockopt:\n");
-
+    	perror("Error en la funcion setsockopt:\n");
 
 	char buf[BUFFER_LEN];
 	char *tipoMensaje;
@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
 
 	// El cliente hace 3 intentos de enviar la solicitud (con un timeout de
 	// 2 segundos antes de indicar que no pudo comunicarse con el Computador
-	// Central (CC))
+	// Central (CC)):
 
 	printf("Enviando datos...\n");
 	while (intentos < 3 && skt.numbytes == -1) {

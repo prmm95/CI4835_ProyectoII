@@ -129,6 +129,28 @@ void escribirBitacora(char *rutaBitacora,char *tipoOperacion,Vehiculo vehiculo) 
 
 //----------------------------------------------------------------------------//
 
+void imprimirLista(Vehiculo **inicioList) {
+
+ Vehiculo *aux = *inicioList;
+ int i = 0;
+
+ 	while (aux != NULL) {
+
+		printf("-------------------\n");
+		printf("Serial: %s \n",aux->serial);
+	 	printf("Código: %d",aux->codigo);
+	 	printf("\n-------------------\n");
+	  	i++;
+	  	aux = aux->siguiente;
+	 }
+
+ printf("Numero de elementos en la lista -> %d\n",i);
+
+}
+
+
+//----------------------------------------------------------------------------//
+
 void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char *bitacora,int *id) {
 			
 	// Se crea el nuevo vehiculo que se agregara a la lista enlazada:
@@ -147,6 +169,7 @@ void agregarVehiculo(Vehiculo **lisVehic,TiempoV Ent, int *cod, char *ser, char 
 
  	// En caso de agregar el primer vehiculo a la lista:
  	if (*lisVehic == NULL) {
+ 		printf("HOLA\n");
  		*lisVehic = nuevoVehiculo;
  	}
  	
@@ -314,10 +337,8 @@ int main(int argc, char *argv[]){
 	int i;
 	char respuesta[60];
 	Vehiculo *listaVehiculos = NULL;
-	Host *listaHosts = NULL;
-
 	long puerto;
-	char entradas[200]; /* HAY QUE DEFINIR EL TAMANO DEL STRING DE LA RUTA DEL ARCHIVO */
+	char entradas[200];
 	char salidas[200];
 	if (argc < 7){
 		printf("\nUso: sem_srv -l puerto_sem_svr -i bitacora_entrada -o bitacora_salida\n\n");
@@ -325,7 +346,6 @@ int main(int argc, char *argv[]){
 	}
 
 	i = 1;
-
 
 	while (i < argc) {
 		if (strcmp(argv[i],"-l") == 0){
@@ -371,9 +391,6 @@ int main(int argc, char *argv[]){
 		argumentos->tiempoSegundos = t1;
 		argumentos->tiempoFormato = tm1;
 		argumentos->listaVehiculos = &listaVehiculos;
-		argumentos->clientes = listaHosts;
-		argumentos->origen = malloc(strlen(inet_ntoa(skt.their_addr.sin_addr)));
-		strcpy(argumentos->origen,inet_ntoa(skt.their_addr.sin_addr));
 		argumentos->skt = &skt;
 
 		// Inicializacion de variables:
@@ -393,13 +410,11 @@ int main(int argc, char *argv[]){
 		tiempo1.tiempoF = tm1;
 		tiempo1.segundos = t1;
 
-
 		time_t t2 = t1 + 7201;
 		Tiempo tm2 = *localtime(&t2);
 
 		// Prueba
 		Vehiculo **inicioList = argumentosBP->listaVehiculos;
-
 
 		// Si el servidor no esta en medio de una comunicacion con el mismo cliente
 		// Verificacion de la operación (Entrada o salida):
@@ -416,25 +431,20 @@ int main(int argc, char *argv[]){
 
 					if (encontrado) {
 						memset(respuesta,0,strlen(respuesta));
-						strcat(respuesta, "3");
+						strcat(respuesta,"3");
 
 					}
 
 					else {
 
-						// Se busca vehiculo: 
 						*puestosOcupados = *puestosOcupados + 1;
-
-						int codigoVehiculo;
 
 						// Se agrega el Vehiculo a la estructura:
 						agregarVehiculo(inicioList,tiempo1,contadorVehiculos,placa,
-										argumentosBP->entradas,&codigoVehiculo);
-						// Se escribe la entrada en la Bitacora:
-						//imprimirLista(inicioList);
+										argumentosBP->entradas,contadorVehiculos);
 
 						char id[10],dia[10],mes[10],anio[10],hora[10],minuto[10],segundo[10];
-						sprintf(id,"%d",codigoVehiculo);
+						sprintf(id,"%d",*contadorVehiculos);
 						sprintf(dia,"%d",tm1.tm_mday);
 						sprintf(mes,"%d",tm1.tm_mon + 1);
 						sprintf(anio,"%d",tm1.tm_year + 1900);
@@ -447,10 +457,7 @@ int main(int argc, char *argv[]){
 						p->confirmado = confirmado;
 
 						memset(respuesta,0,strlen(respuesta));
-
-						char aceptado[2] = "1";
-						
-						strcat(respuesta,aceptado); // Esto es muy bestia, lo se. Luego lo acomodo
+						strcat(respuesta,"1");
 						strcat(respuesta,"/");
 						strcat(respuesta,dia);
 						strcat(respuesta,"/");
@@ -464,9 +471,8 @@ int main(int argc, char *argv[]){
 						strcat(respuesta,"/");
 						strcat(respuesta,segundo);
 						strcat(respuesta,"/");
-						strcat(respuesta,"ab1234");
+						strcat(respuesta,id);
 						p->mensaje = respuesta;
-						//reenviar(p);
 					}
 
 				}
@@ -533,6 +539,11 @@ int main(int argc, char *argv[]){
 			perror("sendto");
 			exit(2);
 		}
+
+		memset(buf,0,strlen(buf));
+
+		imprimirLista(&listaVehiculos);
+
 
 	}
 

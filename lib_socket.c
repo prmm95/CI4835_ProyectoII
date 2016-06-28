@@ -16,16 +16,16 @@
 //                        Directivas de preprocesador                         //
 //----------------------------------------------------------------------------//
 
-#include <arpa/inet.h>  // 
-#include <errno.h>      //
-#include <netdb.h>      // 
-#include <sys/types.h>  //
-#include <stdio.h>      //
-#include <stdlib.h>     //
-#include <string.h>     // 
-#include <time.h>       //
-#include <unistd.h>     //
-#include "lib_socket.h" //
+#include <arpa/inet.h>  
+#include <errno.h>      
+#include <netdb.h>       
+#include <sys/types.h>  
+#include <stdio.h>      
+#include <stdlib.h>     
+#include <string.h>      
+#include <time.h>       
+#include <unistd.h>     
+#include "lib_socket.h" 
 
 //----------------------------------------------------------------------------//
 //                          Definición de funciones                           //
@@ -57,28 +57,6 @@ void *crearSocket(struct Skt *skt,int puerto, int equipo) {
 		perror("bind");
 		exit(2);
 	}
-}
-
-//----------------------------------------------------------------------------//
-
-void *reenviar(void *parametros){
-	struct Parametros *p = parametros;
-	struct Skt *skt = p->skt;
-	int *confirmado = p->confirmado;
-	//printf("ENTRA? %d ",*confirmado);
-	// Mientras el servidor no responda con un ACK
-	//while (!(*confirmado)){
-		sleep(1);
-		// Si el servidor no ha respondido, vuelve a enviar el mensaje
-	//	if (!(*confirmado)){
-			if ((skt->numbytes=sendto(skt->sockfd,p->mensaje,strlen(p->mensaje),0,
-				(struct sockaddr *)&(skt->their_addr),sizeof(struct sockaddr))) == -1) {
-				perror("sendto");
-				exit(2);
-			}
-	//	}
-	//}
-	printf("hola\n" );
 }
 
 //----------------------------------------------------------------------------//
