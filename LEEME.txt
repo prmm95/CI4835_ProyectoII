@@ -124,6 +124,12 @@ Mensaje de salida de vehiculo con un monto de 150 (minimo 00000, maximo 9999 -ca
 |		2		|					0150								  |
 ---------------------------------------------------------------------------
 
+Mensaje de respuesta al recibir del cliente la solicitud de entrada de un vehiculo
+que ya se encuentra presente en el estacionamiento
+---------------------------------------------------------------------------
+|		3		|					VACIO								  |
+---------------------------------------------------------------------------
+
 Mensaje de respuesta al recibir del cliente la solicitud de salida de un vehiculo
 no presente en el estacionamiento.
 ---------------------------------------------------------------------------
