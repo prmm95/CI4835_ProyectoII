@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 		printf("\nUso: sem_cli -d nombre_modulo_atencion -p puerto -c op -i id_vehiculo\n\n");
 		exit(0);
 	}
-	
+
 	i = 1;
 	while (i < argc) { 
 
@@ -129,7 +129,10 @@ int main(int argc, char *argv[]) {
 	// 2 segundos antes de indicar que no pudo comunicarse con el Computador
 	// Central (CC))
 
+	printf("Enviando datos...\n");
 	while (intentos < 3 && skt.numbytes == -1) {
+
+		printf("- Intento: %d\n",intentos);
 
 		if ((skt.numbytes=sendto(skt.sockfd,mensaje,strlen(mensaje),0,(struct sockaddr *)&(skt.their_addr),
 		sizeof(struct sockaddr))) == -1) {
